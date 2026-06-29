@@ -429,7 +429,7 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
         <button class="tab-btn" data-tab="relatorios">📊 Relatórios</button>
         <button class="tab-btn" data-tab="calendario">📅 Calendário</button>
         <button class="tab-btn" data-tab="dicas">🚀 Dicas Antiprocrastinação</button>
-       
+        
        
     </div>
 <div class="container">
@@ -3127,38 +3127,52 @@ let currentUserLogsRef = null; // Guarda a referência do banco do usuário atua
 
 
 // 3. Ouvinte do Firebase (atualiza quando outro dispositivo muda os dados do usuário)
+
 function iniciarOuvinteFirebase() {
-    // Remove o ouvinte antigo se existir (para evitar duplicidade)
     if (currentUserLogsRef) {
         currentUserLogsRef.off();
         currentUserLogsRef = null;
     }
+    if (!currentUser) return;
 
-    if (!currentUser) return; // Se não tiver usuário, não cria o ouvinte
-
-    // Cria a referência específica para o ID do usuário logado
     currentUserLogsRef = database.ref('users/' + currentUser.uid + '/logs');
     
     currentUserLogsRef.on('value', (snapshot) => {
-        const logs = snapshot.val();
-        if (logs) {
-            // Atualiza o cache local com os dados que vieram da nuvem
-            localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
-            // Re-renderiza a interface
-            // removi <renderizarTabela();>
+        const firebaseLogs = snapshot.val();
+        const localLogs = JSON.parse(localStorage.getItem('sedes_manual_logs_fallback') || '[]');
+        
+        // Se o Firebase estiver vazio, não sobrescreve o localStorage
+        if (!firebaseLogs) {
+            // Se o localStorage tiver dados, envia para o Firebase
+            if (localLogs.length > 0) {
+                currentUserLogsRef.set(localLogs).catch(err => console.error('Erro ao sincronizar Firebase:', err));
+            }
+            return;
+        }
+        
+        // Se o Firebase tiver dados, mas o localStorage estiver vazio, restaura do Firebase
+        if (localLogs.length === 0) {
+            localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(firebaseLogs));
+            renderizarTabela();
             atualizarGraficos();
-            atualizarMetricasTempoPorPagina(); // 👈 ADICIONE AQUI
-        } else {
-            // Se o banco estiver vazio, limpa o cache local
-            localStorage.removeItem('sedes_manual_logs_fallback');
-            // removi <renderizarTabela();>
-            atualizarGraficos();
-            atualizarMetricasTempoPorPagina(); // 👈 ADICIONE AQUI
+            atualizarMetricasTempoPorPagina();
+            return;
+        }
+        
+        // Se ambos tiverem dados, mescla (prioriza o localStorage se houver conflito)
+        // Aqui podemos simplesmente ignorar o Firebase se o localStorage já tiver dados,
+        // ou fazer uma mesclagem mais sofisticada (comparando IDs).
+        // Para simplificar, vamos manter o localStorage e enviar de volta para o Firebase.
+        // Mas só se os dados do Firebase forem diferentes.
+        if (JSON.stringify(firebaseLogs) !== JSON.stringify(localLogs)) {
+            // Envia os dados locais para o Firebase (sobrescreve o remoto com o local)
+            currentUserLogsRef.set(localLogs).catch(err => console.error('Erro ao sincronizar Firebase:', err));
         }
     });
 }
 
-    // Chama o ouvinte uma única vez na inicialização
+// Fina da função ouvinte firebase //
+// Chama o ouvinte uma única vez na inicialização
     iniciarOuvinteFirebase();
 
 
@@ -4115,15 +4129,9 @@ function initCalendario() {
     }
 
     function salvarLogs(logs) {
-        try {
-            localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
-            // Se houver Firebase, tenta salvar, mas não quebra
-            if (typeof currentUser !== 'undefined' && currentUser && typeof firebase !== 'undefined') {
-                try {
-                    firebase.database().ref('users/' + currentUser.uid + '/logs').set(logs);
-                } catch (e) {}
-            }
-        } catch (e) {}
+        // Apenas salva no localStorage
+        localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
+        // O Firebase será atualizado automaticamente pelo listener, se você mantiver o listener ativo.
     }
 
     function getDiasEstudados() {

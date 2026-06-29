@@ -405,12 +405,15 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
         white-space: nowrap;
     }
 }
-      
+
+
+
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -422,16 +425,15 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
         <button class="tab-btn" data-tab="cronograma">⏰ Cronograma 5h/dia</button>
         <button class="tab-btn" data-tab="discursiva">✍️ Discursiva (critérios edital)</button>
         <button class="tab-btn" data-tab="legislacao">⚖️ Legislação completa</button>
-         <button class="tab-btn" data-tab="simuladoReal">🎯 Simulado Real (60q)</button>
+        <button class="tab-btn" data-tab="simuladoReal">🎯 Simulado Real (60q)</button>
         <button class="tab-btn" data-tab="relatorios">📊 Relatórios</button>
         <button class="tab-btn" data-tab="dicas">🚀 Dicas Antiprocrastinação</button>
+        <button class="tab-btn" data-tab="calendario">📅 Calendário</button>
        
     </div>
 <div class="container">
 
-
-<!-- ==================== ABA: VISLUMBRANDO O EDITAL (COM CHECKBOXES E PERSISTÊNCIA) ==================== -->
-<!-- ==================== ABA: VISLUMBRANDO O EDITAL (CHECKBOXES HIERARQUIZADOS: TEORIA + QUESTÕES) ==================== -->
+    <!-- ==================== ABA: VISLUMBRANDO O EDITAL (CHECKBOXES HIERARQUIZADOS: TEORIA + QUESTÕES) ==================== -->
 <div id="edital" class="tab-content">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
         <h2 style="margin: 0;">📋 Edital SEDES/DF – Conteúdo Programático Completo</h2>
@@ -966,8 +968,6 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
     </div>
 </div>
 
-
-
 <!-- ==================== ABA 3 LEI SECA TOP FUCKING ARTIGOS ==================== -->
 <div id="leiseca" class="tab-content">
     <h2>🔥 LEI SECA TOP FUCKING ARTIGOS 🔥</h2>
@@ -1412,6 +1412,105 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
         </div>
     </div>
     <footer>⚡ Método Pareto + banca Quadrix – 80% da prova com 20% do conteúdo. Navegue pelas abas e simule as provas.</footer>
+
+<!-- ==================== ABA CALENDÁRIO – GAMIFICAÇÃO TOTAL (TODOS OS RECURSOS) ==================== -->
+<div id="calendario" class="tab-content">
+    <h2>📅 Calendário de Estudos – Gamificação Total</h2>
+    <p style="margin-bottom: 12px;">Cada dia é pintado com base nos seus lançamentos manuais (aba Relatórios).</p>
+
+    <!-- Painel de estatísticas -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; background: #f8fafc; border-radius: 24px; padding: 14px; margin-bottom: 16px;">
+        <div style="text-align:center;"><div style="font-size:1.6rem; font-weight:bold; color:#1e6f5c;" id="streakAtual">0</div><div style="font-size:0.75rem; color:#4b5563;">🔥 Streak</div></div>
+        <div style="text-align:center;"><div style="font-size:1.6rem; font-weight:bold; color:#f59e0b;" id="maiorStreak">0</div><div style="font-size:0.75rem; color:#4b5563;">🏆 Maior</div></div>
+        <div style="text-align:center;"><div style="font-size:1.6rem; font-weight:bold; color:#3b82f6;" id="diasEstudadosMes">0</div><div style="font-size:0.75rem; color:#4b5563;">📘 Dias/mês</div></div>
+        <div style="text-align:center;"><div style="font-size:1.6rem; font-weight:bold; color:#8b5cf6;" id="porcentagemMes">0%</div><div style="font-size:0.75rem; color:#4b5563;">📊 %</div></div>
+        <div style="text-align:center; background: #eef2ff; border-radius: 16px; padding: 4px;">
+            <div style="font-size:1.6rem; font-weight:bold; color:#dc2626;" id="pontosTotais">0</div>
+            <div style="font-size:0.75rem; color:#4b5563;">⭐ Pontos</div>
+        </div>
+        <div style="text-align:center; background: #fefce8; border-radius: 16px; padding: 4px; grid-column: span 2;">
+            <div style="font-size:1.1rem; font-weight:bold; color:#b45309;" id="nivelAtual">Nível 1</div>
+            <div style="width:100%; background:#e5e7eb; border-radius:20px; height:8px; margin:4px 0;">
+                <div id="barraProgressoNivel" style="width:0%; background:#f59e0b; border-radius:20px; height:8px;"></div>
+            </div>
+            <div style="font-size:0.65rem; color:#6b7280;" id="textoProgressoNivel">0 / 500 pts</div>
+        </div>
+    </div>
+
+    <!-- Medalhas -->
+    <div id="containerMedalhas" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 16px; min-height: 36px;"></div>
+
+    <!-- Meta Semanal, Meta Diária, Ranking, Desafio -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px;">
+        <div style="background: #e6f7f0; border-radius: 16px; padding: 8px 14px;">
+            <span><strong>📅 Semana:</strong> <span id="diasSemana">0</span>/5 dias</span>
+            <span id="badgeSemana" style="background: #94a3b8; color: white; padding: 2px 12px; border-radius: 30px; font-size: 0.7rem; margin-left: 8px;">⏳</span>
+        </div>
+        <div style="background: #fefce8; border-radius: 16px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span><strong>🎯 Meta diária:</strong></span>
+            <input type="number" id="metaDiariaInput" value="3" min="0" step="0.5" style="width:60px; padding:4px 6px; border-radius:12px; border:1px solid #cbd5e1; text-align:center;">
+            <span>h</span>
+            <span id="statusMetaDiaria" style="font-weight:bold; font-size:0.85rem;">⏳</span>
+        </div>
+        <div style="background: #e0f2fe; border-radius: 16px; padding: 8px 14px;">
+            <span id="rankingMensal" style="font-size:0.9rem;">📊 Comparação: --</span>
+        </div>
+        <div style="background: #f3e8ff; border-radius: 16px; padding: 8px 14px;">
+            <span id="desafioDiario" style="font-size:0.85rem;">🎲 Desafio: --</span>
+        </div>
+    </div>
+
+    <!-- Cronômetro -->
+<!-- Cronômetro -->
+<div style="background: #f1f5f9; border-radius: 16px; padding: 10px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <span style="font-weight:bold;">⏱️ Estudo agora:</span>
+    <span id="cronometroDisplay" style="font-size:1.4rem; font-family:monospace; font-weight:bold;">00:00:00</span>
+    <button id="btnIniciarCronometro" style="background:#1e6f5c; color:white; border:none; padding:4px 20px; border-radius:40px; cursor:pointer; font-weight:bold;">▶ Iniciar</button>
+    <button id="btnPausarCronometro" style="background:#f59e0b; color:white; border:none; padding:4px 20px; border-radius:40px; cursor:pointer; font-weight:bold;" disabled>⏸ Pausar</button>
+    <button id="btnPararCronometro" style="background:#dc2626; color:white; border:none; padding:4px 20px; border-radius:40px; cursor:pointer; font-weight:bold;" disabled>⏹ Finalizar</button>
+    <span id="statusCronometro" style="font-size:0.8rem; color:#6b7280;">(parado)</span>
+</div>
+
+    <!-- Navegação do calendário -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <button id="btnMesAnterior" style="background: #e2e8f0; border: none; padding: 6px 16px; border-radius: 30px; cursor: pointer; font-weight: bold;">◀</button>
+        <h3 id="tituloMes" style="margin:0; font-size:1.3rem;">Janeiro 2026</h3>
+        <button id="btnMesProximo" style="background: #e2e8f0; border: none; padding: 6px 16px; border-radius: 30px; cursor: pointer; font-weight: bold;">▶</button>
+    </div>
+
+    <!-- Grade do calendário -->
+    <div id="gradeCalendario" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #f1f5f9; border-radius: 16px; padding: 8px;">
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Dom</div>
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Seg</div>
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Ter</div>
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Qua</div>
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Qui</div>
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Sex</div>
+        <div style="font-weight:bold; text-align:center; padding:6px 0; color:#4b5563;">Sáb</div>
+    </div>
+
+    <!-- Gráfico -->
+    <div style="margin-top: 20px; background: #f8fafc; border-radius: 20px; padding: 14px;">
+        <h4 style="margin: 0 0 10px 0;">📈 Progresso diário (horas)</h4>
+        <div style="height: 160px; width: 100%;">
+            <canvas id="graficoProgressoMensal"></canvas>
+        </div>
+    </div>
+
+    <!-- Legenda e Export -->
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; justify-content: center; align-items: center;">
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <span><span style="display:inline-block; width:14px; height:14px; background:#1e6f5c; border-radius:4px;"></span> Estudou</span>
+            <span><span style="display:inline-block; width:14px; height:14px; background:#dc2626; border-radius:4px;"></span> Não estudou</span>
+            <span><span style="display:inline-block; width:14px; height:14px; background:#3b82f6; border-radius:4px;"></span> Hoje</span>
+            <span><span style="display:inline-block; width:14px; height:14px; background:#e5e7eb; border-radius:4px;"></span> Futuro</span>
+        </div>
+        <button id="btnExportarRelatorioGamificado" style="background: #1e6f5c; color: white; border: none; padding: 6px 18px; border-radius: 40px; cursor: pointer; font-weight: bold; font-size:0.85rem;">📥 Baixar Relatório</button>
+    </div>
+
+    <p style="margin-top: 12px; font-size:0.8rem; color:#6b7280; text-align:center;">
+        💡 Dados baseados nos registros da aba <strong>Relatórios</strong>.
+    </p>
 </div>
 
 <!-- ==================== ABA SIMULADO REAL (60 questões) ==================== -->
@@ -1646,8 +1745,6 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
     </div>
 </div>
 
-<!-- ==================== ABA RELATÓRIOS ==================== -->
-
 <!-- ==================== ABA RELATÓRIOS (COM DIÁRIO DE ESTUDOS) ==================== -->
 <div id="relatorios" class="tab-content">
     <h2>📊 Relatórios de Estudo</h2>
@@ -1700,6 +1797,12 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
 
     <!-- ========== DIÁRIO MANUAL DE ESTUDOS ========== -->
     <h2>📝 Lançamento de estudo manual</h2>
+    <!-- ========== Destacar o último local de parada ========== -->
+<div id="ultimoPontoParada" style="background: #fef9e3; border-left: 6px solid #f59e0b; border-radius: 16px; padding: 12px; margin-bottom: 20px;">
+    <strong>🔁 Último ponto de parada:</strong> 
+    <span id="ultimoOndeParei" style="font-weight: normal; color: #1e2a3e;">Nenhum registro ainda</span>
+</div>
+
     <div style="background: #f1f5f9; border-radius: 24px; padding: 20px; margin-bottom: 24px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
             <div>
@@ -1769,6 +1872,14 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
             <div>
                 <label><strong>📅 Data</strong></label>
                 <input type="date" id="dataEstudo" style="width: 100%; padding: 8px; border-radius: 12px; border: 1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label><strong>📌 Onde iniciei</strong></label>
+                <input type="text" id="ondeIniciei" placeholder="Ex: art. 37 da CF" style="width:100%; padding:8px; border-radius:12px; border:1px solid #cbd5e1;">
+            </div>
+            <div>
+                <label><strong>📌 Onde parei</strong></label>
+                <input type="text" id="ondeParei" placeholder="Ex: art. 5º, inciso II" style="width:100%; padding:8px; border-radius:12px; border:1px solid #cbd5e1;">
             </div>
         </div>
         <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -1882,6 +1993,7 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
             <thead>
                 <tr style="background: #eef2ff;">
                     <th>Disciplina (Nível 2)</th>
+                    <th>Subtópico (Nível 3)</th>   <!-- NOVA COLUNA -->
                     <th>Total de páginas</th>
                     <th>Tempo total (min)</th>
                     <th>Média (min/página)</th>
@@ -1903,7 +2015,39 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
 
-    
+    //adicionado para implementação da aba supergameficação do calendário.
+    if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+}
+
+       // Serve para limitar os rótulos dos gráficos, evitando que fiquem muito longos
+            function abreviarRotulo(texto, limite = 30) {
+                // Se o texto já está dentro do limite, retorna ele
+                if (texto.length <= limite) return texto;
+
+                const palavras = texto.split(' ');
+                // Se tem 2 palavras ou menos, corta no limite com '…'
+                if (palavras.length <= 2) {
+                    return texto.substring(0, limite) + '…';
+                }
+
+                // Abrevia cada palavra (exceto a primeira) com 3 letras + '.'
+                const abreviadas = palavras.map((pal, i) => {
+                    if (i === 0) return pal; // primeira palavra inteira
+                    if (pal.length <= 3) return pal; // palavras curtas não são abreviadas
+                    return pal.substring(0, 3) + '.';
+                });
+
+                let resultado = abreviadas.join(' ');
+                // Se ainda ultrapassar o limite, corta no final com '…'
+                if (resultado.length > limite) {
+                    resultado = resultado.substring(0, limite) + '…';
+                }
+                return resultado;
+                }
+  
+
+    let currentUser = null;
     // --------------------------------------------------------
     // 1. INICIALIZAÇÃO DA ABA SIMULADO (250 questões + timer)
     // --------------------------------------------------------
@@ -2426,8 +2570,6 @@ function initAbaDiscursiva() {
         });
     }
 
-// ==================== SIMULADO REAL (60 questões) ====================
-
 // ==================== SIMULADO REAL (60 questões + DISCURSIVA) ====================
 function initSimuladoReal() {
     const container = document.getElementById('simuladoReal');
@@ -2887,13 +3029,14 @@ function initSimuladoReal() {
     inicializarSimulado();
 }
 
-    // ==================== INICIALIZAÇÃO DA ABA RELATÓRIOS ====================
-// ==================== INICIALIZAÇÃO DA ABA RELATÓRIOS (MANUAL + AUTOMÁTICO) ====================
-
 // ==================== INICIALIZAÇÃO DA ABA RELATÓRIOS (MANUAL + AUTOMÁTICO) ====================
 function initAbaRelatorios() {
     const container = document.getElementById('relatorios');
     if (!container) return;
+
+    // 1. Declare a variável para armazenar a referência da função toggleHistorico
+    let toggleHistoricoFn = null;   // <-- ADICIONE ESTA LINHA
+
 
         // Tornar funções de acesso globais para uso nos botões de exclusão
   
@@ -2981,23 +3124,6 @@ auth.onAuthStateChanged(user => {
 
 let currentUserLogsRef = null; // Guarda a referência do banco do usuário atual
 
-// 1. Carregar logs (lê do cache local)
-function carregarLogs() {
-    const local = localStorage.getItem('sedes_manual_logs_fallback');
-    return local ? JSON.parse(local) : [];
-}
-
-// 2. Salvar logs (salva local e envia para o Firebase do usuário)
-function salvarLogs(logs) {
-    // Salva no cache local (instantâneo)
-    localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
-    
-    // Salva no Firebase, mas APENAS se o usuário estiver logado
-    if (currentUser) {
-        const ref = database.ref('users/' + currentUser.uid + '/logs');
-        ref.set(logs).catch(err => console.error("Erro ao salvar no Firebase:", err));
-    }
-}
 
 // 3. Ouvinte do Firebase (atualiza quando outro dispositivo muda os dados do usuário)
 function iniciarOuvinteFirebase() {
@@ -3018,13 +3144,13 @@ function iniciarOuvinteFirebase() {
             // Atualiza o cache local com os dados que vieram da nuvem
             localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
             // Re-renderiza a interface
-            renderizarTabela();
+            // removi <renderizarTabela();>
             atualizarGraficos();
             atualizarMetricasTempoPorPagina(); // 👈 ADICIONE AQUI
         } else {
             // Se o banco estiver vazio, limpa o cache local
             localStorage.removeItem('sedes_manual_logs_fallback');
-            renderizarTabela();
+            // removi <renderizarTabela();>
             atualizarGraficos();
             atualizarMetricasTempoPorPagina(); // 👈 ADICIONE AQUI
         }
@@ -3202,26 +3328,23 @@ function adicionarLog() {
         return;
     }
     const tipo = tipoEstudo.value;
-    // Lê ciclo e multiplicador
     const ciclo = parseInt(document.getElementById('cicloTempo').value) || 0;
     const multiplicador = parseInt(document.getElementById('multiplicadorCiclo').value) || 0;
     const totalMinutos = ciclo * multiplicador;
-
     if (totalMinutos === 0) {
         alert('O tempo total deve ser maior que zero.');
         return;
     }
-
-    // Converte para horas e minutos
     const horas = Math.floor(totalMinutos / 60);
     const minutos = totalMinutos % 60;
-
     const pages = parseInt(paginas.value) || 0;
     const cert = parseInt(certas.value) || 0;
     const err = parseInt(erradas.value) || 0;
     const total = cert + err;
     const perc = total > 0 ? Math.round((cert / total) * 100) : 0;
     const data = dataEstudo.value || new Date().toISOString().slice(0, 10);
+    const ondeIniciei = document.getElementById('ondeIniciei').value.trim();
+    const ondeParei = document.getElementById('ondeParei').value.trim();
 
     const log = {
         id: Date.now(),
@@ -3230,13 +3353,15 @@ function adicionarLog() {
         nivel2: n2,
         nivel3: n3,
         tipo,
-        horas: horas,
-        minutos: minutos,
+        horas,
+        minutos,
         paginas: pages,
         certas: cert,
         erradas: err,
         total,
-        percentual: perc
+        percentual: perc,
+        ondeIniciei,
+        ondeParei
     };
 
     const logs = carregarLogs();
@@ -3245,15 +3370,45 @@ function adicionarLog() {
     renderizarTabela();
     atualizarGraficos();
     atualizarMetricasTempoPorPagina();
+
+    // ===== EXPANDE AUTOMATICAMENTE (FORÇA ABERTURA) =====
+    const containerHistorico = document.getElementById('historicoContainer');
+    const btnToggle = document.getElementById('btnToggleHistorico');
+    const contador = document.getElementById('contadorHistorico');
+
+    if (containerHistorico) {
+        containerHistorico.style.display = 'block';
+        if (btnToggle) btnToggle.textContent = '▲ Recolher';
+        if (contador) {
+            const updatedLogs = carregarLogs();
+            contador.textContent = `(${updatedLogs.length} registros)`;
+        }
+    }
+
+    // Limpa os campos "onde" para a próxima entrada
+    document.getElementById('ondeIniciei').value = '';
+    document.getElementById('ondeParei').value = '';
 }
 
     function removerLog(id) {
         let logs = carregarLogs();
+        const originalLength = logs.length;
         logs = logs.filter(log => log.id !== id);
+        if (logs.length === originalLength) {
+            console.warn('ID não encontrado para remoção:', id);
+            return;
+        }
         salvarLogs(logs);
         renderizarTabela();
         atualizarGraficos();
-        atualizarMetricasTempoPorPagina(); // 👈 ADICIONE ESTA LINHA
+        atualizarMetricasTempoPorPagina();
+
+        // ===== ATUALIZA O CONTADOR =====
+        const contador = document.getElementById('contadorHistorico');
+        if (contador) {
+            const updatedLogs = carregarLogs();
+            contador.textContent = `(${updatedLogs.length} registros)`;
+        }
     }
 
     function limparTodosLogs() {
@@ -3268,11 +3423,15 @@ function adicionarLog() {
     window.removerLog = removerLog;
 
     // ---------- 5. RENDERIZAR TABELA ----------
- function renderizarTabela() {
+
+    function renderizarTabela() {
     const logs = carregarLogs();
+    const corpo = document.getElementById('corpoTabelaManual');
+    if (!corpo) return;
+
+    // Atualiza o contador sempre que renderizar a tabela
     const contador = document.getElementById('contadorHistorico');
     if (contador) {
-        // Se o histórico estiver expandido, mostra o número; senão, mostra apenas se houver registros
         const container = document.getElementById('historicoContainer');
         if (container && container.style.display === 'block') {
             contador.textContent = `(${logs.length} registros)`;
@@ -3281,17 +3440,18 @@ function adicionarLog() {
         }
     }
 
-    const corpo = document.getElementById('corpoTabelaManual');
     if (logs.length === 0) {
-        corpo.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">Nenhum lançamento manual ainda.</td></tr>';
+        corpo.innerHTML = '<tr><td colspan="14" style="text-align:center; padding: 20px;">Nenhum lançamento manual ainda.</td></tr>';
+        atualizarUltimoPontoParada();
         return;
     }
+
     let html = '';
     logs.slice().reverse().forEach(log => {
-       const tempo = log.horas > 0 
+        const tempo = log.horas > 0 
             ? `${log.horas}h ${log.minutos}m (${log.horas * 60 + log.minutos} min)`
             : `${log.minutos}m`;
-       html += `
+        html += `
             <tr>
                 <td style="padding: 6px;">${log.data}</td>
                 <td style="padding: 6px;">${log.nivel1}</td>
@@ -3304,12 +3464,17 @@ function adicionarLog() {
                 <td style="padding: 6px;">${log.erradas}</td>
                 <td style="padding: 6px;">${log.total}</td>
                 <td style="padding: 6px;">${log.percentual}%</td>
+                <td style="padding: 6px;">${log.ondeIniciei || ''}</td>
+                <td style="padding: 6px;">${log.ondeParei || ''}</td>
                 <td style="padding: 6px;"><button onclick="removerLog(${log.id})" style="background:#b91c1c; border:none; padding:4px 8px; border-radius:12px; cursor:pointer; color:white;">🗑️</button></td>
             </tr>
         `;
     });
+
     corpo.innerHTML = html;
+    atualizarUltimoPontoParada();
 }
+
       // ---------- 6. TABELA DE ERROS POR SUBTÓPICO ----------
 
     // ---------- 7. GRÁFICOS (Chart.js) ----------
@@ -3317,265 +3482,6 @@ function adicionarLog() {
     let graficoAcertosErros = null;
     let graficoNivel1 = null;
 
-function atualizarGraficos() {
-    // Serve para limitar os rótulos dos gráficos, evitando que fiquem muito longos
-   function abreviarRotulo(texto, limite = 30) {
-    // Se o texto já está dentro do limite, retorna ele
-    if (texto.length <= limite) return texto;
-
-    const palavras = texto.split(' ');
-    // Se tem 2 palavras ou menos, corta no limite com '…'
-    if (palavras.length <= 2) {
-        return texto.substring(0, limite) + '…';
-    }
-
-    // Abrevia cada palavra (exceto a primeira) com 3 letras + '.'
-    const abreviadas = palavras.map((pal, i) => {
-        if (i === 0) return pal; // primeira palavra inteira
-        if (pal.length <= 3) return pal; // palavras curtas não são abreviadas
-        return pal.substring(0, 3) + '.';
-    });
-
-    let resultado = abreviadas.join(' ');
-    // Se ainda ultrapassar o limite, corta no final com '…'
-    if (resultado.length > limite) {
-        resultado = resultado.substring(0, limite) + '…';
-    }
-    return resultado;
-}
-    const logs = carregarLogs();
-    if (logs.length === 0) {
-        if (graficoHorasPaginas) { graficoHorasPaginas.destroy(); graficoHorasPaginas = null; }
-        if (graficoAcertosErros) { graficoAcertosErros.destroy(); graficoAcertosErros = null; }
-        if (graficoNivel1) { graficoNivel1.destroy(); graficoNivel1 = null; }
-        document.getElementById('tabelaErrosSubtopico').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Nenhum dado ainda.</p>';
-        return;
-    }
-
-    // ---------- FILTROS PARA GRÁFICOS DE QUESTÕES ----------
-    const logsComQuestoes = logs.filter(log => (log.certas + log.erradas) > 0);
-    const logsComErros = logs.filter(log => log.erradas > 0);
-
-    // ---------- Agrupar TODOS os logs para Horas/Páginas e Nível 1 ----------
-    const disciplinasCompletas = {};
-    const niveis1Completos = {};
-
-    logs.forEach(log => {
-        const key = log.nivel2;
-        if (!disciplinasCompletas[key]) {
-            disciplinasCompletas[key] = { horas: 0, paginas: 0 };
-        }
-        disciplinasCompletas[key].horas += log.horas + log.minutos / 60;
-        disciplinasCompletas[key].paginas += log.paginas;
-
-        if (!niveis1Completos[log.nivel1]) niveis1Completos[log.nivel1] = 0;
-        niveis1Completos[log.nivel1] += log.horas + log.minutos / 60;
-    });
-
-    // ---------- Agrupar APENAS logs com questões para Acertos/Erros/% ----------
-    const disciplinasQuestoes = {};
-    logsComQuestoes.forEach(log => {
-        const key = log.nivel2;
-        if (!disciplinasQuestoes[key]) {
-            disciplinasQuestoes[key] = { certas: 0, erradas: 0, total: 0 };
-        }
-        disciplinasQuestoes[key].certas += log.certas;
-        disciplinasQuestoes[key].erradas += log.erradas;
-        disciplinasQuestoes[key].total += log.certas + log.erradas;
-    });
-
-    // ---------- Agrupar por SUBTÓPICO (nível 3) para classificação de desempenho ----------
-    const desempenhoSubtopico = {};
-    logsComQuestoes.forEach(log => {
-        const subKey = `${log.nivel1}|${log.nivel2}|${log.nivel3}`;
-        if (!desempenhoSubtopico[subKey]) {
-            desempenhoSubtopico[subKey] = {
-                nivel1: log.nivel1,
-                nivel2: log.nivel2,
-                nivel3: log.nivel3,
-                certas: 0,
-                erradas: 0,
-                total: 0
-            };
-        }
-        desempenhoSubtopico[subKey].certas += log.certas;
-        desempenhoSubtopico[subKey].erradas += log.erradas;
-        desempenhoSubtopico[subKey].total += log.certas + log.erradas;
-    });
-
-    // ---------- Preparar dados para os gráficos ----------
-    const labelsCompletas = Object.keys(disciplinasCompletas);
-    const horasData = labelsCompletas.map(l => disciplinasCompletas[l].horas);
-    const paginasData = labelsCompletas.map(l => disciplinasCompletas[l].paginas);
-
-    const labelsQuestoes = Object.keys(disciplinasQuestoes);
-    const certasData = labelsQuestoes.map(l => disciplinasQuestoes[l].certas);
-    const erradasData = labelsQuestoes.map(l => disciplinasQuestoes[l].erradas);
-    const percData = labelsQuestoes.map(l => {
-        const total = disciplinasQuestoes[l].certas + disciplinasQuestoes[l].erradas;
-        return total > 0 ? Math.round((disciplinasQuestoes[l].certas / total) * 100) : 0;
-    });
-
-    const labelsN1 = Object.keys(niveis1Completos);
-    const dataN1 = Object.values(niveis1Completos);
-
-    // ---------- Destruir gráficos antigos ----------
-    if (graficoHorasPaginas) { graficoHorasPaginas.destroy(); graficoHorasPaginas = null; }
-    if (graficoAcertosErros) { graficoAcertosErros.destroy(); graficoAcertosErros = null; }
-    if (graficoNivel1) { graficoNivel1.destroy(); graficoNivel1 = null; }
-
-// ---------- Gráfico 1: Horas e Páginas ----------
-// ---------- Gráfico 1: Horas e Páginas ----------
-const labelsTruncadas = labelsCompletas.map(label => abreviarRotulo(label, 30));
-
-const ctx1 = document.getElementById('graficoHorasPaginas').getContext('2d');
-graficoHorasPaginas = new Chart(ctx1, {
-    type: 'bar',
-    data: {
-        labels: labelsTruncadas,
-        datasets: [
-            { label: 'Horas', data: horasData, backgroundColor: 'rgba(30,111,92,0.8)', borderColor: '#1e6f5c', borderWidth: 1, yAxisID: 'y' },
-            { label: 'Páginas', data: paginasData, backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3b82f6', borderWidth: 1, yAxisID: 'y1' }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
-        scales: {
-            y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Horas' } },
-            y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Páginas' }, grid: { drawOnChartArea: false } }
-        }
-    }
-});
-
-// ---------- Gráfico 2: Acertos, Erros e % ----------
-// ---------- Gráfico 2: Acertos, Erros e % ----------
-const labelsTruncadas2 = labelsQuestoes.map(label => abreviarRotulo(label, 30));
-
-const ctx2 = document.getElementById('graficoAcertosErros').getContext('2d');
-graficoAcertosErros = new Chart(ctx2, {
-    type: 'bar',
-    data: {
-        labels: labelsTruncadas2,
-        datasets: [
-            { label: 'Acertos', data: certasData, backgroundColor: 'rgba(30,111,92,0.7)', borderColor: '#1e6f5c', borderWidth: 1, yAxisID: 'y' },
-            { label: 'Erros', data: erradasData, backgroundColor: 'rgba(220,38,38,0.7)', borderColor: '#dc2626', borderWidth: 1, yAxisID: 'y' },
-            { label: '% Acertos', type: 'line', data: percData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.2)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointBorderColor: '#f59e0b', pointRadius: 5, fill: false, tension: 0.3, yAxisID: 'y1' }
-        ]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
-        scales: {
-            y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Quantidade' } },
-            y1: { beginAtZero: true, position: 'right', max: 100, title: { display: true, text: '%' }, grid: { drawOnChartArea: false } }
-        }
-    }
-});
-    // ---------- Gráfico 3: Tempo por Nível 1 ----------
-    const ctx3 = document.getElementById('graficoNivel1').getContext('2d');
-    const coresN1 = ['#1e6f5c', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
-    graficoNivel1 = new Chart(ctx3, {
-        type: 'pie',
-        data: { labels: labelsN1, datasets: [{ data: dataN1, backgroundColor: coresN1.slice(0, labelsN1.length) }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } } }
-    });
-
-    // ---------- NOVA SESSÃO: CLASSIFICAÇÃO DE DESEMPENHO POR SUBTÓPICO ----------
-// ---------- NOVA SESSÃO: CLASSIFICAÇÃO DE DESEMPENHO POR SUBTÓPICO ----------
-const containerDesempenho = document.getElementById('tabelaErrosSubtopico');
-
-// Converter para array e calcular percentual e nível
-const desempenhoArray = Object.values(desempenhoSubtopico).map(item => {
-    const perc = item.total > 0 ? (item.certas / item.total) * 100 : 0;
-    let nivel = '';
-    let cor = '';
-    if (perc <= 70) {
-        nivel = 'Iniciante';
-        cor = '#dc2626';
-    } else if (perc <= 80) {
-        nivel = 'Intermediário';
-        cor = '#f59e0b';
-    } else if (perc <= 90) {
-        nivel = 'Competitivo';
-        cor = '#3b82f6';
-    } else {
-        nivel = 'Aprovado';
-        cor = '#1e6f5c';
-    }
-    return {
-        ...item,
-        percentual: Math.round(perc),
-        nivel: nivel,
-        cor: cor
-    };
-});
-
-// Ordenar por percentual (do menor para o maior) para destacar dificuldades
-desempenhoArray.sort((a, b) => a.percentual - b.percentual);
-
-if (desempenhoArray.length === 0) {
-    containerDesempenho.innerHTML = '<p style="color: #94a3b8; font-style: italic;">Nenhum dado de questões registrado ainda.</p>';
-    return;
-}
-
-// Contar quantos em cada nível
-const contagemNiveis = {
-    Iniciante: desempenhoArray.filter(d => d.nivel === 'Iniciante').length,
-    Intermediário: desempenhoArray.filter(d => d.nivel === 'Intermediário').length,
-    Competitivo: desempenhoArray.filter(d => d.nivel === 'Competitivo').length,
-    Aprovado: desempenhoArray.filter(d => d.nivel === 'Aprovado').length
-};
-
-// Montar HTML da tabela
-let html = `
-    <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
-        <span style="background: #dc2626; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Iniciante: ${contagemNiveis.Iniciante}</span>
-        <span style="background: #f59e0b; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Intermediário: ${contagemNiveis.Intermediário}</span>
-        <span style="background: #3b82f6; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Competitivo: ${contagemNiveis.Competitivo}</span>
-        <span style="background: #1e6f5c; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Aprovado: ${contagemNiveis.Aprovado}</span>
-    </div>
-    <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
-        <thead>
-            <tr style="background:#eef2ff;">
-                <th style="padding:6px; text-align:left;">Disciplina (N2)</th>
-                <th style="padding:6px; text-align:left;">Subtópico (N3)</th>
-                <th style="padding:6px; text-align:center;">✅</th>
-                <th style="padding:6px; text-align:center;">❌</th>
-                <th style="padding:6px; text-align:center;">Total</th>
-                <th style="padding:6px; text-align:center;">% Acerto</th>
-                <th style="padding:6px; text-align:center;">Nível</th>
-            </tr>
-        </thead>
-        <tbody>
-`;
-
-desempenhoArray.forEach(item => {
-    html += `
-        <tr>
-            <td style="padding:4px 6px; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.nivel2}">
-                ${item.nivel2.length > 15 ? item.nivel2.substring(0,13)+'…' : item.nivel2}
-            </td>
-            <td style="padding:4px 6px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.nivel3}">
-                ${item.nivel3.length > 18 ? item.nivel3.substring(0,16)+'…' : item.nivel3}
-            </td>
-            <td style="padding:4px 6px; text-align:center;">${item.certas}</td>
-            <td style="padding:4px 6px; text-align:center;">${item.erradas}</td>
-            <td style="padding:4px 6px; text-align:center;">${item.total}</td>
-            <td style="padding:4px 6px; text-align:center; font-weight:bold;">${item.percentual}%</td>
-            <td style="padding:4px 6px; text-align:center;">
-                <span style="background:${item.cor}; color:white; padding:2px 10px; border-radius:30px; font-size:0.7rem; font-weight:bold;">
-                    ${item.nivel}
-                </span>
-            </td>
-        </tr>
-    `;
-});
-html += '</tbody></table>';
-containerDesempenho.innerHTML = html;
-    // Chamar a nova tabela de desempenho
-    renderizarTabelaDesempenho();
-}
 
 
 // ---------- RENDERIZA TABELA DE DESEMPENHO POR NÍVEIS ----------
@@ -3855,6 +3761,10 @@ function setupHistorico() {
     if (!header || !btn || !container) return;
 
     function toggleHistorico() {
+        const container = document.getElementById('historicoContainer');
+        const btn = document.getElementById('btnToggleHistorico');
+        const contador = document.getElementById('contadorHistorico');
+
         if (container.style.display === 'none' || container.style.display === '') {
             container.style.display = 'block';
             btn.textContent = '▲ Recolher';
@@ -3867,6 +3777,10 @@ function setupHistorico() {
             if (contador) contador.textContent = '';
         }
     }
+
+    // ===== NOVA LINHA: Guarda a referência =====
+    toggleHistoricoFn = toggleHistorico;   // <-- ADICIONE ESTA LINHA
+
 
     // Clique no cabeçalho ou no botão
     header.addEventListener('click', toggleHistorico);
@@ -3884,55 +3798,1008 @@ function setupHistorico() {
 setupHistorico();
 
 
+
+
     // ---------- 11. INICIALIZAR ----------
     ativarObservador();
     configurarBotoes();
 }
-    
-// Função para expandir/recolher o histórico de lançamentos manuais
-function toggleHistorico() {
-    const container = document.getElementById('historicoContainer');
-    const btn = document.getElementById('btnToggleHistorico');
-    const contador = document.getElementById('contadorHistorico');
-    const logs = JSON.parse(localStorage.getItem('sedes_manual_logs') || '[]');
-    
-    if (container.style.display === 'none' || container.style.display === '') {
-        container.style.display = 'block';
-        btn.textContent = '▲ Recolher';
-        // Atualiza o contador ao expandir
-        if (contador) {
-            contador.textContent = `(${logs.length} registros)`;
+
+function atualizarGraficos() {
+     console.log('atualizarGraficos iniciada');
+   
+const logs = carregarLogs();
+    if (logs.length === 0) {
+        if (graficoHorasPaginas) { graficoHorasPaginas.destroy(); graficoHorasPaginas = null; }
+        if (graficoAcertosErros) { graficoAcertosErros.destroy(); graficoAcertosErros = null; }
+        if (graficoNivel1) { graficoNivel1.destroy(); graficoNivel1 = null; }
+        document.getElementById('tabelaErrosSubtopico').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Nenhum dado ainda.</p>';
+        return;
+    }
+
+    // ---------- FILTROS PARA GRÁFICOS DE QUESTÕES ----------
+    const logsComQuestoes = logs.filter(log => (log.certas + log.erradas) > 0);
+    const logsComErros = logs.filter(log => log.erradas > 0);
+
+    // ---------- Agrupar TODOS os logs para Horas/Páginas e Nível 1 ----------
+    const disciplinasCompletas = {};
+    const niveis1Completos = {};
+
+    logs.forEach(log => {
+        const key = log.nivel2;
+        if (!disciplinasCompletas[key]) {
+            disciplinasCompletas[key] = { horas: 0, paginas: 0 };
         }
+        disciplinasCompletas[key].horas += log.horas + log.minutos / 60;
+        disciplinasCompletas[key].paginas += log.paginas;
+
+        if (!niveis1Completos[log.nivel1]) niveis1Completos[log.nivel1] = 0;
+        niveis1Completos[log.nivel1] += log.horas + log.minutos / 60;
+    });
+
+    // ---------- Agrupar APENAS logs com questões para Acertos/Erros/% ----------
+    const disciplinasQuestoes = {};
+    logsComQuestoes.forEach(log => {
+        const key = log.nivel2;
+        if (!disciplinasQuestoes[key]) {
+            disciplinasQuestoes[key] = { certas: 0, erradas: 0, total: 0 };
+        }
+        disciplinasQuestoes[key].certas += log.certas;
+        disciplinasQuestoes[key].erradas += log.erradas;
+        disciplinasQuestoes[key].total += log.certas + log.erradas;
+    });
+
+    // ---------- Agrupar por SUBTÓPICO (nível 3) para classificação de desempenho ----------
+    const desempenhoSubtopico = {};
+    logsComQuestoes.forEach(log => {
+        const subKey = `${log.nivel1}|${log.nivel2}|${log.nivel3}`;
+        if (!desempenhoSubtopico[subKey]) {
+            desempenhoSubtopico[subKey] = {
+                nivel1: log.nivel1,
+                nivel2: log.nivel2,
+                nivel3: log.nivel3,
+                certas: 0,
+                erradas: 0,
+                total: 0
+            };
+        }
+        desempenhoSubtopico[subKey].certas += log.certas;
+        desempenhoSubtopico[subKey].erradas += log.erradas;
+        desempenhoSubtopico[subKey].total += log.certas + log.erradas;
+    });
+
+    // ---------- Preparar dados para os gráficos ----------
+    const labelsCompletas = Object.keys(disciplinasCompletas);
+    const horasData = labelsCompletas.map(l => disciplinasCompletas[l].horas);
+    const paginasData = labelsCompletas.map(l => disciplinasCompletas[l].paginas);
+
+    const labelsQuestoes = Object.keys(disciplinasQuestoes);
+    const certasData = labelsQuestoes.map(l => disciplinasQuestoes[l].certas);
+    const erradasData = labelsQuestoes.map(l => disciplinasQuestoes[l].erradas);
+    const percData = labelsQuestoes.map(l => {
+        const total = disciplinasQuestoes[l].certas + disciplinasQuestoes[l].erradas;
+        return total > 0 ? Math.round((disciplinasQuestoes[l].certas / total) * 100) : 0;
+    });
+
+    const labelsN1 = Object.keys(niveis1Completos);
+    const dataN1 = Object.values(niveis1Completos);
+
+    // ---------- Destruir gráficos antigos ----------
+        // Destruir gráficos antigos com segurança
+        if (graficoHorasPaginas && typeof graficoHorasPaginas.destroy === 'function') {
+            graficoHorasPaginas.destroy();
+        }
+        graficoHorasPaginas = null;
+
+        if (graficoAcertosErros && typeof graficoAcertosErros.destroy === 'function') {
+            graficoAcertosErros.destroy();
+        }
+        graficoAcertosErros = null;
+
+        if (graficoNivel1 && typeof graficoNivel1.destroy === 'function') {
+            graficoNivel1.destroy();
+        }
+        graficoNivel1 = null;
+
+// ---------- Gráfico 1: Horas e Páginas ----------
+// ---------- Gráfico 1: Horas e Páginas ----------
+const labelsTruncadas = labelsCompletas.map(label => abreviarRotulo(label, 30));
+
+const ctx1 = document.getElementById('graficoHorasPaginas').getContext('2d');
+graficoHorasPaginas = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+        labels: labelsTruncadas,
+        datasets: [
+            { label: 'Horas', data: horasData, backgroundColor: 'rgba(30,111,92,0.8)', borderColor: '#1e6f5c', borderWidth: 1, yAxisID: 'y' },
+            { label: 'Páginas', data: paginasData, backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3b82f6', borderWidth: 1, yAxisID: 'y1' }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+        scales: {
+            y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Horas' } },
+            y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Páginas' }, grid: { drawOnChartArea: false } }
+        }
+    }
+});
+
+// ---------- Gráfico 2: Acertos, Erros e % ----------
+// ---------- Gráfico 2: Acertos, Erros e % ----------
+const labelsTruncadas2 = labelsQuestoes.map(label => abreviarRotulo(label, 30));
+
+const ctx2 = document.getElementById('graficoAcertosErros').getContext('2d');
+graficoAcertosErros = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+        labels: labelsTruncadas2,
+        datasets: [
+            { label: 'Acertos', data: certasData, backgroundColor: 'rgba(30,111,92,0.7)', borderColor: '#1e6f5c', borderWidth: 1, yAxisID: 'y' },
+            { label: 'Erros', data: erradasData, backgroundColor: 'rgba(220,38,38,0.7)', borderColor: '#dc2626', borderWidth: 1, yAxisID: 'y' },
+            { label: '% Acertos', type: 'line', data: percData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.2)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointBorderColor: '#f59e0b', pointRadius: 5, fill: false, tension: 0.3, yAxisID: 'y1' }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+        scales: {
+            y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Quantidade' } },
+            y1: { beginAtZero: true, position: 'right', max: 100, title: { display: true, text: '%' }, grid: { drawOnChartArea: false } }
+        }
+    }
+});
+    // ---------- Gráfico 3: Tempo por Nível 1 ----------
+    const ctx3 = document.getElementById('graficoNivel1').getContext('2d');
+    const coresN1 = ['#1e6f5c', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+    graficoNivel1 = new Chart(ctx3, {
+        type: 'pie',
+        data: { labels: labelsN1, datasets: [{ data: dataN1, backgroundColor: coresN1.slice(0, labelsN1.length) }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } } }
+    });
+
+    // ---------- NOVA SESSÃO: CLASSIFICAÇÃO DE DESEMPENHO POR SUBTÓPICO ----------
+// ---------- NOVA SESSÃO: CLASSIFICAÇÃO DE DESEMPENHO POR SUBTÓPICO ----------
+const containerDesempenho = document.getElementById('tabelaErrosSubtopico');
+
+// Converter para array e calcular percentual e nível
+const desempenhoArray = Object.values(desempenhoSubtopico).map(item => {
+    const perc = item.total > 0 ? (item.certas / item.total) * 100 : 0;
+    let nivel = '';
+    let cor = '';
+    if (perc <= 70) {
+        nivel = 'Iniciante';
+        cor = '#dc2626';
+    } else if (perc <= 80) {
+        nivel = 'Intermediário';
+        cor = '#f59e0b';
+    } else if (perc <= 90) {
+        nivel = 'Competitivo';
+        cor = '#3b82f6';
     } else {
-        container.style.display = 'none';
-        btn.textContent = '▶ Expandir';
-        if (contador) {
-            contador.textContent = '';
+        nivel = 'Aprovado';
+        cor = '#1e6f5c';
+    }
+    return {
+        ...item,
+        percentual: Math.round(perc),
+        nivel: nivel,
+        cor: cor
+    };
+});
+
+// Ordenar por percentual (do menor para o maior) para destacar dificuldades
+desempenhoArray.sort((a, b) => a.percentual - b.percentual);
+
+if (desempenhoArray.length === 0) {
+    containerDesempenho.innerHTML = '<p style="color: #94a3b8; font-style: italic;">Nenhum dado de questões registrado ainda.</p>';
+    return;
+}
+
+// Contar quantos em cada nível
+const contagemNiveis = {
+    Iniciante: desempenhoArray.filter(d => d.nivel === 'Iniciante').length,
+    Intermediário: desempenhoArray.filter(d => d.nivel === 'Intermediário').length,
+    Competitivo: desempenhoArray.filter(d => d.nivel === 'Competitivo').length,
+    Aprovado: desempenhoArray.filter(d => d.nivel === 'Aprovado').length
+};
+
+// Montar HTML da tabela
+let html = `
+    <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+        <span style="background: #dc2626; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Iniciante: ${contagemNiveis.Iniciante}</span>
+        <span style="background: #f59e0b; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Intermediário: ${contagemNiveis.Intermediário}</span>
+        <span style="background: #3b82f6; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Competitivo: ${contagemNiveis.Competitivo}</span>
+        <span style="background: #1e6f5c; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">Aprovado: ${contagemNiveis.Aprovado}</span>
+    </div>
+    <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+        <thead>
+            <tr style="background:#eef2ff;">
+                <th style="padding:6px; text-align:left;">Disciplina (N2)</th>
+                <th style="padding:6px; text-align:left;">Subtópico (N3)</th>
+                <th style="padding:6px; text-align:center;">✅</th>
+                <th style="padding:6px; text-align:center;">❌</th>
+                <th style="padding:6px; text-align:center;">Total</th>
+                <th style="padding:6px; text-align:center;">% Acerto</th>
+                <th style="padding:6px; text-align:center;">Nível</th>
+            </tr>
+        </thead>
+        <tbody>
+`;
+
+desempenhoArray.forEach(item => {
+    html += `
+        <tr>
+            <td style="padding:4px 6px; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.nivel2}">
+                ${item.nivel2.length > 15 ? item.nivel2.substring(0,13)+'…' : item.nivel2}
+            </td>
+            <td style="padding:4px 6px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.nivel3}">
+                ${item.nivel3.length > 18 ? item.nivel3.substring(0,16)+'…' : item.nivel3}
+            </td>
+            <td style="padding:4px 6px; text-align:center;">${item.certas}</td>
+            <td style="padding:4px 6px; text-align:center;">${item.erradas}</td>
+            <td style="padding:4px 6px; text-align:center;">${item.total}</td>
+            <td style="padding:4px 6px; text-align:center; font-weight:bold;">${item.percentual}%</td>
+            <td style="padding:4px 6px; text-align:center;">
+                <span style="background:${item.cor}; color:white; padding:2px 10px; border-radius:30px; font-size:0.7rem; font-weight:bold;">
+                    ${item.nivel}
+                </span>
+            </td>
+        </tr>
+    `;
+});
+html += '</tbody></table>';
+containerDesempenho.innerHTML = html;
+
+}
+
+// ==================== CALENDÁRIO GAMIFICADO ====================
+
+// ==================== CALENDÁRIO – VERSÃO ESTÁVEL ====================
+
+// ==================== CALENDÁRIO – GAMIFICAÇÃO TOTAL (COM PAUSA NO CRONÔMETRO) ====================
+let graficoMensal = null;
+let ultimasMedalhas = [];
+
+function initCalendario() {
+    console.log('initCalendario executando...');
+
+    // --- REFERÊNCIAS DOM ---
+    const grade = document.getElementById('gradeCalendario');
+    const tituloMes = document.getElementById('tituloMes');
+    const btnAnterior = document.getElementById('btnMesAnterior');
+    const btnProximo = document.getElementById('btnMesProximo');
+    const streakAtualSpan = document.getElementById('streakAtual');
+    const maiorStreakSpan = document.getElementById('maiorStreak');
+    const diasEstudadosMesSpan = document.getElementById('diasEstudadosMes');
+    const porcentagemMesSpan = document.getElementById('porcentagemMes');
+    const pontosTotaisSpan = document.getElementById('pontosTotais');
+    const containerMedalhas = document.getElementById('containerMedalhas');
+    const nivelAtualSpan = document.getElementById('nivelAtual');
+    const barraProgresso = document.getElementById('barraProgressoNivel');
+    const textoProgresso = document.getElementById('textoProgressoNivel');
+    const diasSemanaSpan = document.getElementById('diasSemana');
+    const badgeSemana = document.getElementById('badgeSemana');
+    const metaDiariaInput = document.getElementById('metaDiariaInput');
+    const statusMetaDiaria = document.getElementById('statusMetaDiaria');
+    const rankingMensalSpan = document.getElementById('rankingMensal');
+    const desafioDiarioSpan = document.getElementById('desafioDiario');
+    const cronometroDisplay = document.getElementById('cronometroDisplay');
+    const btnIniciarCron = document.getElementById('btnIniciarCronometro');
+    const btnPausarCron = document.getElementById('btnPausarCronometro');
+    const btnPararCron = document.getElementById('btnPararCronometro');
+    const statusCron = document.getElementById('statusCronometro');
+    const btnNotif = document.getElementById('btnNotificacao');
+    const btnExportar = document.getElementById('btnExportarRelatorioGamificado');
+
+    // Se os elementos principais não existirem, aborta
+    if (!grade || !tituloMes) {
+        console.warn('Elementos do calendário não encontrados. Abortando.');
+        return;
+    }
+
+    // --- ESTADO DO MÊS (inicia com o mês atual) ---
+    const agora = new Date();
+    let ano = agora.getFullYear();
+    let mes = agora.getMonth();
+
+    // --- FUNÇÕES AUXILIARES (isoladas) ---
+    function carregarLogs() {
+        try {
+            const local = localStorage.getItem('sedes_manual_logs_fallback');
+            return local ? JSON.parse(local) : [];
+        } catch (e) {
+            return [];
         }
+    }
+
+    function salvarLogs(logs) {
+        try {
+            localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
+            // Se houver Firebase, tenta salvar, mas não quebra
+            if (typeof currentUser !== 'undefined' && currentUser && typeof firebase !== 'undefined') {
+                try {
+                    firebase.database().ref('users/' + currentUser.uid + '/logs').set(logs);
+                } catch (e) {}
+            }
+        } catch (e) {}
+    }
+
+    function getDiasEstudados() {
+        const logs = carregarLogs();
+        const dias = new Set();
+        logs.forEach(log => { if (log.data) dias.add(log.data.split('T')[0]); });
+        return dias;
+    }
+
+    function getHorasPorDia() {
+        const logs = carregarLogs();
+        const mapa = {};
+        logs.forEach(log => {
+            if (log.data) {
+                const dataStr = log.data.split('T')[0];
+                const horas = (log.horas || 0) + (log.minutos || 0) / 60;
+                if (mapa[dataStr]) mapa[dataStr] += horas;
+                else mapa[dataStr] = horas;
+            }
+        });
+        return mapa;
+    }
+
+    function getWeekId(date) {
+        const d = new Date(date);
+        d.setHours(0,0,0,0);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        return monday.toISOString().split('T')[0];
+    }
+
+    function contarDiasSemana(diasEstudados) {
+        const hoje = new Date();
+        const weekId = getWeekId(hoje);
+        let count = 0;
+        for (let d of diasEstudados) {
+            const date = new Date(d + 'T00:00:00');
+            if (getWeekId(date) === weekId) count++;
+        }
+        return count;
+    }
+
+    function calcularStreaks(diasEstudados) {
+        const datas = Array.from(diasEstudados).sort();
+        if (datas.length === 0) return { atual: 0, maior: 0 };
+        const dates = datas.map(d => new Date(d + 'T00:00:00')).sort((a,b)=>a-b);
+        let streakAtual = 0, maiorStreak = 0;
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+        let dataComparacao = new Date(hoje);
+        const hojeStr = hoje.toISOString().split('T')[0];
+        if (diasEstudados.has(hojeStr)) { streakAtual = 1; dataComparacao.setDate(dataComparacao.getDate() - 1); }
+        else {
+            let ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
+            if (diasEstudados.has(ontem.toISOString().split('T')[0])) { streakAtual = 1; dataComparacao = new Date(ontem); dataComparacao.setDate(dataComparacao.getDate() - 1); }
+            else streakAtual = 0;
+        }
+        if (streakAtual > 0) {
+            while (true) {
+                const dStr = dataComparacao.toISOString().split('T')[0];
+                if (diasEstudados.has(dStr)) { streakAtual++; dataComparacao.setDate(dataComparacao.getDate() - 1); }
+                else break;
+            }
+        }
+        let temp = 0;
+        for (let i = 0; i < dates.length; i++) {
+            if (i === 0) temp = 1;
+            else {
+                const diff = (dates[i] - dates[i-1]) / (1000*60*60*24);
+                if (diff === 1) temp++;
+                else { if (temp > maiorStreak) maiorStreak = temp; temp = 1; }
+            }
+        }
+        if (temp > maiorStreak) maiorStreak = temp;
+        return { atual: streakAtual, maior: maiorStreak };
+    }
+
+    function calcularPontos(totalDias, maiorStreak, diasSemana, semanaBonus) {
+        let base = totalDias * 10;
+        let bonus = 0;
+        if (maiorStreak >= 7) bonus += 50;
+        if (maiorStreak >= 14) bonus += 100;
+        if (maiorStreak >= 30) bonus += 200;
+        if (diasSemana >= 5 && semanaBonus) bonus += 50;
+        return base + bonus;
+    }
+
+    // --- SONS E CONFETES (opcional) ---
+    function tocarSom(frequencia, duracao = 200, tipo = 'sine') {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = tipo;
+            osc.frequency.value = frequencia;
+            gain.gain.value = 0.15;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            setTimeout(() => { osc.stop(); ctx.close(); }, duracao);
+        } catch(e) {}
+    }
+
+    function somPlim() { tocarSom(880, 150, 'sine'); setTimeout(() => tocarSom(1100, 150, 'sine'), 120); }
+
+    function lancarConfete() {
+        const cores = ['#ff0','#f0f','#0ff','#f00','#0f0','#00f','#fa0','#ff6b6b','#48dbfb','#ff9ff3'];
+        for (let i = 0; i < 70; i++) {
+            const el = document.createElement('div');
+            el.style.cssText = `position:fixed; left:${Math.random()*100}%; top:-10px; width:${4+Math.random()*8}px; height:${4+Math.random()*8}px; background:${cores[Math.floor(Math.random()*cores.length)]}; border-radius:${Math.random()>0.5?'50%':'2px'}; pointer-events:none; z-index:9999; transition: all ${1+Math.random()*1.5}s cubic-bezier(0.2, 0.8, 0.2, 1);`;
+            document.body.appendChild(el);
+            setTimeout(() => {
+                el.style.transform = `translate(${(Math.random()-0.5)*400}px, ${window.innerHeight + 100}px) rotate(${Math.random()*720}deg) scale(0.2)`;
+                el.style.opacity = '0';
+            }, 10);
+            setTimeout(() => el.remove(), 3000);
+        }
+    }
+
+    function notificarMedalha(nome, emoji) {
+        somPlim();
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "granted") {
+            new Notification(`🏅 Nova Medalha: ${nome}`, { body: `Parabéns! Você desbloqueou a medalha ${emoji} ${nome}!`, icon: 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@14.0.1/img/apple/64/1f3c6.png' });
+        }
+    }
+
+    // --- MEDALHAS ---
+    function renderizarMedalhas(totalDias, maiorStreak, pontos) {
+        if (!containerMedalhas) return;
+        const novas = [];
+        if (totalDias >= 1) novas.push({ nome: 'Primeiro passo!', emoji: '🌱', cor: '#8b5cf6' });
+        if (totalDias >= 10) novas.push({ nome: '10 dias de foco!', emoji: '🥈', cor: '#94a3b8' });
+        if (maiorStreak >= 7) novas.push({ nome: 'Streak 7 dias! 🔥', emoji: '🥉', cor: '#f59e0b' });
+        if (maiorStreak >= 14) novas.push({ nome: 'Streak 14 dias! ⚡', emoji: '🏅', cor: '#3b82f6' });
+        if (maiorStreak >= 30) novas.push({ nome: 'Streak 30 dias! 👑', emoji: '👑', cor: '#dc2626' });
+        if (totalDias >= 30) novas.push({ nome: 'Mês completo! 🎯', emoji: '🎯', cor: '#1e6f5c' });
+        if (pontos >= 500) novas.push({ nome: 'Nível 2! ⬆️', emoji: '⬆️', cor: '#f97316' });
+        if (pontos >= 1000) novas.push({ nome: 'Nível 3! ⚡', emoji: '⚡', cor: '#8b5cf6' });
+        if (pontos >= 2000) novas.push({ nome: 'Nível 4! 🚀', emoji: '🚀', cor: '#1e6f5c' });
+
+        const ids = novas.map(n => n.nome);
+        const idsAntigas = ultimasMedalhas || [];
+        const novasMedalhas = ids.filter(id => !idsAntigas.includes(id));
+        if (novasMedalhas.length > 0) {
+            novasMedalhas.forEach(med => {
+                const item = novas.find(n => n.nome === med);
+                if (item) {
+                    notificarMedalha(item.nome, item.emoji);
+                    lancarConfete();
+                }
+            });
+        }
+        ultimasMedalhas = ids;
+
+        if (novas.length === 0) {
+            containerMedalhas.innerHTML = '<span style="color:#94a3b8; font-style:italic;">Estude para desbloquear medalhas! 🏅</span>';
+            return;
+        }
+        let html = '';
+        novas.forEach(c => {
+            html += `<div style="background: ${c.cor}20; border: 2px solid ${c.cor}; border-radius: 50px; padding: 4px 14px; display: inline-flex; align-items: center; gap: 6px; font-weight: bold; color: #1e293b; font-size:0.85rem;">
+                        <span style="font-size:1.2rem;">${c.emoji}</span> ${c.nome}
+                    </div>`;
+        });
+        containerMedalhas.innerHTML = html;
+    }
+
+    // --- RANKING MENSAL ---
+    function calcularRankingMensal() {
+        const logs = carregarLogs();
+        const agora = new Date();
+        const mesAtual = agora.getMonth();
+        const anoAtual = agora.getFullYear();
+
+        function horasDoMes(m, a) {
+            let total = 0;
+            logs.forEach(log => {
+                if (log.data) {
+                    const d = new Date(log.data + 'T00:00:00');
+                    if (d.getMonth() === m && d.getFullYear() === a) {
+                        total += (log.horas || 0) + (log.minutos || 0) / 60;
+                    }
+                }
+            });
+            return total;
+        }
+
+        const horasMesAtual = horasDoMes(mesAtual, anoAtual);
+        let mesPassado = mesAtual - 1;
+        let anoPassado = anoAtual;
+        if (mesPassado < 0) { mesPassado = 11; anoPassado--; }
+        const horasMesPassado = horasDoMes(mesPassado, anoPassado);
+
+        if (horasMesPassado === 0 && horasMesAtual === 0) return '📊 Comparação: Sem dados ainda';
+        if (horasMesPassado === 0) return '📊 Primeiro mês! 🎉';
+        const diff = ((horasMesAtual - horasMesPassado) / horasMesPassado) * 100;
+        const sinal = diff > 0 ? '+' : '';
+        return `📊 Comparação: ${sinal}${diff.toFixed(1)}% que no mês passado (${horasMesPassado.toFixed(1)}h → ${horasMesAtual.toFixed(1)}h)`;
+    }
+
+    // --- DESAFIO DIÁRIO ---
+    function gerarDesafioDiario() {
+        const desafios = [
+            'Resolva 20 questões de Direito Administrativo (Lei 14.133)',
+            'Leia e resuma 5 artigos da LOAS (BPC)',
+            'Faça 30 questões da CF (arts. 1º a 5º)',
+            'Treine a discursiva sobre improbidade administrativa',
+            'Assista a uma videoaula sobre LGPD na administração pública',
+            'Resolva 15 questões do ECA (medidas socioeducativas)',
+            'Estude 2h de Lei Maria da Penha (artigos principais)',
+            'Faça um simulado de 20 questões da sua especialidade'
+        ];
+        const hoje = new Date();
+        const seed = hoje.getFullYear() * 10000 + (hoje.getMonth()+1) * 100 + hoje.getDate();
+        const idx = seed % desafios.length;
+        return desafios[idx];
+    }
+
+    // --- META DIÁRIA ---
+    function verificarMetaDiaria() {
+        if (!metaDiariaInput || !statusMetaDiaria) return;
+        const meta = parseFloat(metaDiariaInput.value) || 0;
+        const hojeStr = new Date().toISOString().split('T')[0];
+        const horas = getHorasPorDia();
+        const horasHoje = horas[hojeStr] || 0;
+        if (meta === 0) { statusMetaDiaria.textContent = '⏳ Sem meta'; return; }
+        if (horasHoje >= meta) {
+            statusMetaDiaria.textContent = '✅ Meta batida! 🎉';
+            statusMetaDiaria.style.color = '#1e6f5c';
+        } else {
+            statusMetaDiaria.textContent = `⏳ ${horasHoje.toFixed(1)}h / ${meta}h`;
+            statusMetaDiaria.style.color = '#f59e0b';
+        }
+    }
+
+    // --- EXPORTAR RELATÓRIO ---
+    if (btnExportar) {
+        btnExportar.addEventListener('click', function() {
+            const logs = carregarLogs();
+            const dias = getDiasEstudados();
+            const streaks = calcularStreaks(dias);
+            const totalDias = dias.size;
+            const pontos = parseInt(pontosTotaisSpan ? pontosTotaisSpan.textContent : '0') || 0;
+            const nivel = Math.floor(pontos / 500) + 1;
+            const medalhas = containerMedalhas ? Array.from(containerMedalhas.querySelectorAll('div')).map(el => el.textContent.trim()).join(', ') : '';
+            const desafio = desafioDiarioSpan ? desafioDiarioSpan.textContent.replace('🎲 Desafio: ', '') : '';
+
+            let texto = '📚 RELATÓRIO GAMIFICADO - SEDES/DF\n';
+            texto += '='.repeat(40) + '\n';
+            texto += `📅 Data: ${new Date().toLocaleString('pt-BR')}\n`;
+            texto += `🔥 Streak atual: ${streaks.atual} dias\n`;
+            texto += `🏆 Maior streak: ${streaks.maior} dias\n`;
+            texto += `📘 Total de dias estudados (geral): ${totalDias}\n`;
+            texto += `⭐ Pontos totais: ${pontos}\n`;
+            texto += `⬆️ Nível atual: ${nivel}\n`;
+            texto += `🏅 Medalhas: ${medalhas || 'Nenhuma ainda'}\n`;
+            texto += `🎲 Desafio do dia: ${desafio}\n`;
+            texto += `📊 Total de lançamentos manuais: ${logs.length}\n`;
+            texto += '='.repeat(40) + '\n';
+            texto += '🎯 Continue assim! Cada dia conta! 🚀';
+
+            const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio_gamificado_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // --- NOTIFICAÇÕES ---
+    if (btnNotif) {
+        btnNotif.addEventListener('click', function() {
+            if (!("Notification" in window)) { alert('Seu navegador não suporta notificações.'); return; }
+            if (Notification.permission === "granted") {
+                alert('Notificações já estão ativadas!');
+                if (!("Notification" in window)) return;
+                if (Notification.permission === "granted") {
+                    new Notification('📚 Bora estudar, guerreiro!', { body: 'Você está a 2 dias de perder o streak. Não desista!', icon: 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@14.0.1/img/apple/64/1f4da.png' });
+                }
+            } else if (Notification.permission === "denied") {
+                alert('Você bloqueou as notificações. Ative nas configurações do navegador.');
+            } else {
+                Notification.requestPermission().then(perm => {
+                    if (perm === 'granted') {
+                        alert('Notificações ativadas! Você receberá lembretes.');
+                        if (!("Notification" in window)) return;
+                        if (Notification.permission === "granted") {
+                            new Notification('📚 Bora estudar, guerreiro!', { body: 'Você está a 2 dias de perder o streak. Não desista!', icon: 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@14.0.1/img/apple/64/1f4da.png' });
+                        }
+                    } else {
+                        alert('Permissão negada. Você pode ativar depois nas configurações.');
+                    }
+                });
+            }
+        });
+    }
+
+    // --- CRONÔMETRO COM PAUSA ---
+    let cronometroInterval = null;
+    let cronometroSegundos = 0;
+    let cronometroRodando = false;
+    let cronometroPausado = false;
+
+    function atualizarCronometroDisplay() {
+        if (!cronometroDisplay) return;
+        const h = Math.floor(cronometroSegundos / 3600);
+        const m = Math.floor((cronometroSegundos % 3600) / 60);
+        const s = cronometroSegundos % 60;
+        cronometroDisplay.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function iniciarCronometro() {
+        if (cronometroRodando) return;
+        cronometroRodando = true;
+        cronometroPausado = false;
+        if (btnIniciarCron) btnIniciarCron.disabled = true;
+        if (btnPausarCron) {
+            btnPausarCron.disabled = false;
+            btnPausarCron.textContent = '⏸ Pausar';
+            btnPausarCron.style.background = '#f59e0b';
+        }
+        if (btnPararCron) btnPararCron.disabled = false;
+        if (statusCron) statusCron.textContent = '⏳ cronometrando...';
+        cronometroInterval = setInterval(() => {
+            if (!cronometroPausado) {
+                cronometroSegundos++;
+                atualizarCronometroDisplay();
+            }
+        }, 1000);
+    }
+
+    function pausarCronometro() {
+        if (!cronometroRodando) return;
+        cronometroPausado = !cronometroPausado;
+        if (cronometroPausado) {
+            if (btnPausarCron) {
+                btnPausarCron.textContent = '▶ Retomar';
+                btnPausarCron.style.background = '#3b82f6';
+            }
+            if (statusCron) statusCron.textContent = '⏸ pausado';
+        } else {
+            if (btnPausarCron) {
+                btnPausarCron.textContent = '⏸ Pausar';
+                btnPausarCron.style.background = '#f59e0b';
+            }
+            if (statusCron) statusCron.textContent = '⏳ cronometrando...';
+        }
+    }
+
+    function pararCronometro() {
+        if (!cronometroRodando) return;
+        cronometroRodando = false;
+        cronometroPausado = false;
+        clearInterval(cronometroInterval);
+        if (btnIniciarCron) btnIniciarCron.disabled = false;
+        if (btnPausarCron) {
+            btnPausarCron.disabled = true;
+            btnPausarCron.textContent = '⏸ Pausar';
+            btnPausarCron.style.background = '#f59e0b';
+        }
+        if (btnPararCron) btnPararCron.disabled = true;
+        if (statusCron) statusCron.textContent = '⏹ parado';
+
+        if (cronometroSegundos >= 60) {
+            const horas = Math.floor(cronometroSegundos / 3600);
+            const minutos = Math.floor((cronometroSegundos % 3600) / 60);
+            const dataHoje = new Date().toISOString().split('T')[0];
+            const logs = carregarLogs();
+            logs.push({
+                id: Date.now(),
+                data: dataHoje,
+                nivel1: '⏱️ Automático',
+                nivel2: 'Cronômetro',
+                nivel3: 'Sessão de estudo',
+                tipo: 'Teoria',
+                horas: horas,
+                minutos: minutos,
+                paginas: 0,
+                certas: 0,
+                erradas: 0,
+                total: 0,
+                percentual: 0,
+                ondeIniciei: 'Cronômetro automático',
+                ondeParei: 'Fim da sessão'
+            });
+            salvarLogs(logs);
+            if (statusCron) statusCron.textContent = `✅ ${horas}h ${minutos}min registrados!`;
+            somPlim();
+            renderizarCalendario();
+        } else {
+            if (statusCron) statusCron.textContent = '⏹ tempo muito curto (ignorado)';
+        }
+        cronometroSegundos = 0;
+        atualizarCronometroDisplay();
+    }
+
+    if (btnIniciarCron) btnIniciarCron.addEventListener('click', iniciarCronometro);
+    if (btnPausarCron) btnPausarCron.addEventListener('click', pausarCronometro);
+    if (btnPararCron) btnPararCron.addEventListener('click', pararCronometro);
+
+    // --- RENDERIZAÇÃO PRINCIPAL ---
+    function renderizarCalendario() {
+        try {
+            const diasEstudados = getDiasEstudados();
+            const horasPorDia = getHorasPorDia();
+            const primeiroDia = new Date(ano, mes, 1);
+            const ultimoDia = new Date(ano, mes + 1, 0);
+            const diasNoMes = ultimoDia.getDate();
+            const diaSemanaInicio = primeiroDia.getDay();
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+            const nomesMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            tituloMes.textContent = `${nomesMes[mes]} ${ano}`;
+
+            // GRADE DO CALENDÁRIO
+            let html = '';
+            for (let i = 0; i < diaSemanaInicio; i++) {
+                html += `<div style="padding:6px; text-align:center; background:#f1f5f9; border-radius:8px; color:#94a3b8;"></div>`;
+            }
+
+            for (let d = 1; d <= diasNoMes; d++) {
+                const dataObj = new Date(ano, mes, d);
+                const dataStr = dataObj.toISOString().split('T')[0];
+                const isToday = dataObj.getTime() === hoje.getTime();
+                const isFuture = dataObj > hoje;
+                const estudou = diasEstudados.has(dataStr);
+                let cor = '#e5e7eb', textoCor = '#1e293b', destaque = '';
+                if (isFuture) { cor = '#f1f5f9'; textoCor = '#94a3b8'; }
+                else if (estudou) { cor = '#1e6f5c'; textoCor = 'white'; }
+                else { cor = '#dc2626'; textoCor = 'white'; }
+                if (isToday) destaque = 'box-shadow: 0 0 0 3px #3b82f6;';
+                html += `<div style="padding:6px; text-align:center; background:${cor}; border-radius:8px; color:${textoCor}; font-weight:bold; ${destaque}">${d}</div>`;
+            }
+            const totalCells = diaSemanaInicio + diasNoMes;
+            const restante = (7 - (totalCells % 7)) % 7;
+            for (let i = 0; i < restante; i++) {
+                html += `<div style="padding:6px; text-align:center; background:#f1f5f9; border-radius:8px; color:#94a3b8;"></div>`;
+            }
+            grade.innerHTML = html;
+
+            // STATS
+            const streaks = calcularStreaks(diasEstudados);
+            streakAtualSpan.textContent = streaks.atual;
+            maiorStreakSpan.textContent = streaks.maior;
+
+            let diasMes = 0;
+            for (let d = 1; d <= diasNoMes; d++) {
+                const ds = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                if (diasEstudados.has(ds)) diasMes++;
+            }
+            diasEstudadosMesSpan.textContent = diasMes;
+            porcentagemMesSpan.textContent = Math.round((diasMes / diasNoMes) * 100) + '%';
+
+            // Meta semanal
+            const diasSemana = contarDiasSemana(diasEstudados);
+            diasSemanaSpan.textContent = diasSemana;
+            const weekId = getWeekId(new Date());
+            const semanaBonusKey = `sedes_weekly_bonus_${weekId}`;
+            let semanaBonus = localStorage.getItem(semanaBonusKey) === 'true';
+            if (diasSemana >= 5 && !semanaBonus) {
+                badgeSemana.innerHTML = '🎉 Meta batida! +50 pts';
+                badgeSemana.style.background = '#1e6f5c';
+                semanaBonus = true;
+                localStorage.setItem(semanaBonusKey, 'true');
+                lancarConfete();
+                notificarMedalha('Meta Semanal', '🎯');
+            } else if (diasSemana >= 5 && semanaBonus) {
+                badgeSemana.innerHTML = '🏆 Meta batida!';
+                badgeSemana.style.background = '#f59e0b';
+            } else {
+                badgeSemana.innerHTML = '⏳ Em andamento';
+                badgeSemana.style.background = '#94a3b8';
+            }
+
+            // Pontos e Nível
+            const totalDiasGlobal = diasEstudados.size;
+            let pontos = calcularPontos(totalDiasGlobal, streaks.maior, diasSemana, semanaBonus);
+            pontosTotaisSpan.textContent = pontos;
+            const nivel = Math.floor(pontos / 500) + 1;
+            const progresso = (pontos % 500);
+            nivelAtualSpan.textContent = `Nível ${nivel}`;
+            barraProgresso.style.width = `${(progresso / 500) * 100}%`;
+            textoProgresso.textContent = `${progresso} / 500 pts`;
+
+            renderizarMedalhas(totalDiasGlobal, streaks.maior, pontos);
+
+            // Meta diária
+            verificarMetaDiaria();
+
+            // Ranking mensal
+            rankingMensalSpan.textContent = calcularRankingMensal();
+
+            // Desafio diário
+            desafioDiarioSpan.textContent = `🎲 Desafio: ${gerarDesafioDiario()}`;
+
+            // GRÁFICO
+            const canvas = document.getElementById('graficoProgressoMensal');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (graficoMensal) { graficoMensal.destroy(); graficoMensal = null; }
+
+                function formatarHoras(horas) {
+                    if (!horas || horas === 0) return '0min';
+                    const h = Math.floor(horas);
+                    const min = Math.round((horas - h) * 60);
+                    if (h === 0) return min + 'min';
+                    if (min === 0) return h + 'h';
+                    return h + 'h ' + min + 'min';
+                }
+
+                const labels = [];
+                const dataHoras = [];
+                const cores = [];
+                let maxHoras = 0;
+
+                for (let d = 1; d <= diasNoMes; d++) {
+                    const dataObj = new Date(ano, mes, d);
+                    const dataStr = dataObj.toISOString().split('T')[0];
+                    labels.push(d);
+                    const horas = horasPorDia[dataStr] || 0;
+                    dataHoras.push(horas);
+                    if (horas > maxHoras) maxHoras = horas;
+                    const isFuture = dataObj > hoje;
+                    if (isFuture) {
+                        cores.push('#e5e7eb');
+                    } else {
+                        cores.push(horas > 0 ? '#1e6f5c' : '#dc2626');
+                    }
+                }
+
+                graficoMensal = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Horas estudadas',
+                            data: dataHoras,
+                            backgroundColor: cores,
+                            borderColor: cores,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const horas = context.raw;
+                                        if (horas === 0) return 'Nenhuma hora registrada';
+                                        return formatarHoras(horas) + ' de estudos';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: Math.max(1, maxHoras * 1.2),
+                                title: { display: true, text: 'Horas', color: '#1e293b' },
+                                ticks: {
+                                    callback: function(value) { return formatarHoras(value); },
+                                    color: '#1e293b'
+                                },
+                                grid: { color: '#e2e8f0' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { maxTicksLimit: 31, font: { size: 8 }, color: '#1e293b' }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Erro ao renderizar calendário:', err);
+        }
+    }
+
+    // --- NAVEGAÇÃO ---
+    btnAnterior.addEventListener('click', () => {
+        mes--;
+        if (mes < 0) { mes = 11; ano--; }
+        renderizarCalendario();
+    });
+    btnProximo.addEventListener('click', () => {
+        mes++;
+        if (mes > 11) { mes = 0; ano++; }
+        renderizarCalendario();
+    });
+
+    // --- OBSERVADOR PARA ATUALIZAR AO TROCAR DE ABA ---
+    const abaCalendario = document.getElementById('calendario');
+    if (abaCalendario) {
+        new MutationObserver(() => {
+            if (abaCalendario.classList.contains('active')) {
+                renderizarCalendario();
+            }
+        }).observe(abaCalendario, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // --- META DIÁRIA (eventos) ---
+    if (metaDiariaInput) {
+        metaDiariaInput.addEventListener('change', verificarMetaDiaria);
+        metaDiariaInput.addEventListener('input', verificarMetaDiaria);
+    }
+
+    // --- RENDERIZA INICIAL ---
+    renderizarCalendario();
+
+    // --- ATUALIZA A CADA 30s ---
+    setInterval(renderizarCalendario, 30000);
+}
+
+// --- INICIALIZAÇÃO SEGURA ---
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCalendario);
+} else {
+    initCalendario();
+}
+
+//====================== Fim do calendário =======================
+
+
+// 1. Carregar logs (lê do cache local)
+function carregarLogs() {
+    const local = localStorage.getItem('sedes_manual_logs_fallback');
+    return local ? JSON.parse(local) : [];
+}
+
+// 2. Salvar logs (salva local e envia para o Firebase do usuário)
+function salvarLogs(logs) {
+    // Salva no cache local (instantâneo)
+    localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(logs));
+    
+    // Salva no Firebase, mas APENAS se o usuário estiver logado
+    if (currentUser) {
+        const ref = database.ref('users/' + currentUser.uid + '/logs');
+        ref.set(logs).catch(err => console.error("Erro ao salvar no Firebase:", err));
     }
 }
 
-// ============================================================
-// FUNÇÃO PARA CALCULAR MÉTRICAS DE TEMPO POR PÁGINA
-// ============================================================
+function atualizarUltimoPontoParada() {
+    const logs = carregarLogs();
+    const ultimo = logs.length > 0 ? logs[logs.length - 1] : null;
+    const span = document.getElementById('ultimoOndeParei');
+    if (span) {
+        if (ultimo && ultimo.ondeParei && ultimo.ondeParei.trim() !== '') {
+            // Exibe: Nível 2 > Nível 3
+            const nivel2 = ultimo.nivel2 || 'Nível 2 não definido';
+            const nivel3 = ultimo.nivel3 || 'Nível 3 não definido';
+            const dataFormatada = ultimo.data || '';
+            span.textContent = `${ultimo.ondeParei} (${nivel2} › ${nivel3} - ${dataFormatada})`;
+        } else {
+            span.textContent = 'Nenhum registro ainda';
+        }
+        span.style.display = 'inline';
+    }
+}
 
 
 function atualizarMetricasTempoPorPagina() {
-    // Lê os logs do localStorage
     const logs = JSON.parse(localStorage.getItem('sedes_manual_logs_fallback') || '[]');
-
-    // Filtra apenas registros com páginas > 0 e tempo > 0
     const registrosValidos = logs.filter(log => 
         (log.paginas || 0) > 0 && ((log.horas || 0) + (log.minutos || 0)) > 0
     );
 
-    // Se não houver registros, exibe "---"
     if (registrosValidos.length === 0) {
         document.getElementById('mediaGeralMinutosPagina').textContent = '---';
         document.getElementById('totalPaginasGeral').textContent = '0';
         document.getElementById('tempoTotalGeral').textContent = '0 min';
-        document.getElementById('corpoMetriasPorDisciplina').innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum dado disponível.</td></tr>';
-        // Se o gráfico existir, destrói
+        document.getElementById('corpoMetriasPorDisciplina').innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum dado disponível.</td></tr>';
         if (window.graficoMinutosPagina) {
             window.graficoMinutosPagina.destroy();
             window.graficoMinutosPagina = null;
@@ -3940,7 +4807,6 @@ function atualizarMetricasTempoPorPagina() {
         return;
     }
 
-    // Calcula totais gerais
     let totalPaginas = 0;
     let totalMinutos = 0;
     registrosValidos.forEach(log => {
@@ -3950,64 +4816,100 @@ function atualizarMetricasTempoPorPagina() {
     });
     const mediaGeral = totalMinutos / totalPaginas;
 
-    // Exibe totais gerais com formatação
     document.getElementById('mediaGeralMinutosPagina').textContent = mediaGeral.toFixed(2);
     document.getElementById('totalPaginasGeral').textContent = totalPaginas;
-
-    // Formata tempo total: Xh Ym (total min)
     const totalMinutosFormatado = totalMinutos >= 60 
         ? `${Math.floor(totalMinutos / 60)}h ${totalMinutos % 60}min (${totalMinutos} min)`
         : `${totalMinutos} min`;
     document.getElementById('tempoTotalGeral').textContent = totalMinutosFormatado;
 
-    // Agrupa por disciplina (Nível 2)
-    const disciplinas = {};
+    // Agrupar por Nível 3 (subtópico)
+    const subtopicos = {};
     registrosValidos.forEach(log => {
-        const nome = log.nivel2 || 'Outros';
-        if (!disciplinas[nome]) {
-            disciplinas[nome] = { paginas: 0, minutos: 0 };
+        const chave = log.nivel3 || 'Outros';
+        if (!subtopicos[chave]) {
+            subtopicos[chave] = {
+                nivel2: log.nivel2 || 'Outros',
+                nivel3: log.nivel3 || 'Outros',
+                paginas: 0,
+                minutos: 0
+            };
         }
         const minutos = (log.horas || 0) * 60 + (log.minutos || 0);
-        disciplinas[nome].paginas += log.paginas;
-        disciplinas[nome].minutos += minutos;
+        subtopicos[chave].paginas += log.paginas;
+        subtopicos[chave].minutos += minutos;
     });
 
-    // Monta a tabela de detalhamento
+    // ===== ORDENAÇÃO ALFABÉTICA PELO NÍVEL 2 =====
+    const subtopicosArray = Object.values(subtopicos);
+    subtopicosArray.sort((a, b) => {
+        const nivel2A = a.nivel2.toLowerCase();
+        const nivel2B = b.nivel2.toLowerCase();
+        if (nivel2A < nivel2B) return -1;
+        if (nivel2A > nivel2B) return 1;
+        const nivel3A = a.nivel3.toLowerCase();
+        const nivel3B = b.nivel3.toLowerCase();
+        if (nivel3A < nivel3B) return -1;
+        if (nivel3A > nivel3B) return 1;
+        return 0;
+    });
+
+    // Montar tabela
     const corpo = document.getElementById('corpoMetriasPorDisciplina');
     let html = '';
-    let labels = [];
-    let dados = [];
-    for (const [nome, dadosDisciplina] of Object.entries(disciplinas)) {
-        const media = dadosDisciplina.minutos / dadosDisciplina.paginas;
-        const tempoExibicao = dadosDisciplina.minutos >= 60 
-            ? `${Math.floor(dadosDisciplina.minutos / 60)}h ${dadosDisciplina.minutos % 60}min (${dadosDisciplina.minutos} min)`
-            : `${dadosDisciplina.minutos} min`;
+    const labels = [];
+    const dados = [];
+
+    for (const dadosSub of subtopicosArray) {
+        const media = dadosSub.minutos / dadosSub.paginas;
+        const tempoExibicao = dadosSub.minutos >= 60 
+            ? `${Math.floor(dadosSub.minutos / 60)}h ${dadosSub.minutos % 60}min (${dadosSub.minutos} min)`
+            : `${dadosSub.minutos} min`;
         html += `<tr>
-                    <td>${nome}</td>
-                    <td>${dadosDisciplina.paginas}</td>
+                    <td>${dadosSub.nivel2}</td>
+                    <td>${dadosSub.nivel3}</td>
+                    <td>${dadosSub.paginas}</td>
                     <td>${tempoExibicao}</td>
                     <td><strong>${media.toFixed(2)}</strong></td>
                 </tr>`;
-        labels.push(nome);
+        // Para o gráfico, usamos o Nível 2 (disciplina)
+        labels.push(abreviarRotulo(dadosSub.nivel2, 30));
         dados.push(media);
     }
     corpo.innerHTML = html;
 
-    // Atualiza o gráfico (Minutos por página)
+    // ===== GRÁFICO (agrupado por Nível 2) =====
+    const disciplinasGrafico = {};
+    registrosValidos.forEach(log => {
+        const nome = log.nivel2 || 'Outros';
+        if (!disciplinasGrafico[nome]) {
+            disciplinasGrafico[nome] = { minutos: 0, paginas: 0 };
+        }
+        const minutos = (log.horas || 0) * 60 + (log.minutos || 0);
+        disciplinasGrafico[nome].minutos += minutos;
+        disciplinasGrafico[nome].paginas += log.paginas;
+    });
+
+    const labelsGrafico = [];
+    const dadosGrafico = [];
+    for (const [nome, dadosDisc] of Object.entries(disciplinasGrafico)) {
+        const media = dadosDisc.minutos / dadosDisc.paginas;
+        labelsGrafico.push(abreviarRotulo(nome, 30));
+        dadosGrafico.push(media);
+    }
+
     const ctx = document.getElementById('graficoMinutosPorPagina');
     if (ctx) {
-        // Se já existe um gráfico, destrói
         if (window.graficoMinutosPagina) {
             window.graficoMinutosPagina.destroy();
         }
-        // Cria novo gráfico com dados numéricos e formatação do eixo Y
         window.graficoMinutosPagina = new Chart(ctx.getContext('2d'), {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: labelsGrafico,
                 datasets: [{
                     label: 'Minutos por página',
-                    data: dados, // garanta que são números
+                    data: dadosGrafico,
                     backgroundColor: 'rgba(30, 111, 92, 0.7)',
                     borderColor: '#1e6f5c',
                     borderWidth: 1
@@ -4032,7 +4934,7 @@ function atualizarMetricasTempoPorPagina() {
                         title: { display: true, text: 'Minutos / página' },
                         ticks: {
                             callback: function(value) {
-                                return value.toFixed(2); // exibe duas casas decimais
+                                return value.toFixed(2);
                             }
                         }
                     }
@@ -4041,6 +4943,40 @@ function atualizarMetricasTempoPorPagina() {
         });
     }
 }
+
+// Força a atualização dos relatórios após carregar a página
+setTimeout(() => {
+    if (typeof atualizarUltimoPontoParada === 'function') {
+        atualizarUltimoPontoParada();
+    } else {
+        console.warn('atualizarUltimoPontoParada não definida');
+    }
+    if (typeof atualizarGraficos === 'function') {
+        atualizarGraficos();
+    } else {
+        console.warn('atualizarGraficos não definida');
+    }
+    // Também atualiza as métricas de tempo por página
+    if (typeof atualizarMetricasTempoPorPagina === 'function') {
+        atualizarMetricasTempoPorPagina();
+    }
+}, 500);
+
+// No final do DOMContentLoaded, após todas as inicializações
+setTimeout(() => {
+    if (typeof atualizarUltimoPontoParada === 'function') atualizarUltimoPontoParada();
+    if (typeof atualizarGraficos === 'function') atualizarGraficos();
+    if (typeof atualizarMetricasTempoPorPagina === 'function') atualizarMetricasTempoPorPagina();
+}, 1000); // Aumente para 1000ms
+
+document.querySelector('[data-tab="relatorios"]').addEventListener('click', function() {
+    console.log('Aba Relatórios clicada');
+    setTimeout(() => {
+        atualizarUltimoPontoParada();
+        atualizarGraficos();
+        atualizarMetricasTempoPorPagina();
+    }, 300);
+});
 
 // --------------------------------------------------------
     // 5. EXECUÇÃO DOS MÓDULOS (ordem não importa, mas chamamos todos)
@@ -4053,6 +4989,11 @@ initAbaRelatorios();      // se já existir
 initSimuladoReal();        // nova
 
 });
+
+window.atualizarUltimoPontoParada = atualizarUltimoPontoParada;
+window.atualizarGraficos = atualizarGraficos;
+window.atualizarMetricasTempoPorPagina = atualizarMetricasTempoPorPagina;
+
 
 
 </script>

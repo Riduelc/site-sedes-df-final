@@ -1472,6 +1472,46 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
     <span id="statusCronometro" style="font-size:0.8rem; color:#6b7280;">(parado)</span>
 </div>
 
+<!-- ===== POMODORO ===== -->
+<div style="background: #f8fafc; border-radius: 20px; padding: 16px; margin: 16px 0;">
+    <h4 style="margin: 0 0 10px 0;">🍅 Pomodoro</h4>
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+        <!-- Display do timer -->
+        <div style="font-size: 2.5rem; font-family: monospace; font-weight: bold; min-width: 140px;" id="pomodoroDisplay">25:00</div>
+        <!-- Status -->
+        <div style="font-size: 1rem; font-weight: bold; color: #1e6f5c;" id="pomodoroStatus">⏸ Parado</div>
+        <!-- Contador de ciclos -->
+        <div style="font-size: 0.9rem; background: #eef2ff; padding: 4px 12px; border-radius: 30px;">
+            🍅 Ciclos: <span id="pomodoroCiclos">0</span>
+        </div>
+    </div>
+    <!-- Botões -->
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+        <button id="pomodoroIniciar" class="timer-btn primary" style="background:#1e6f5c;">▶ Iniciar</button>
+        <button id="pomodoroPausar" class="timer-btn" style="background:#f59e0b;" disabled>⏸ Pausar</button>
+        <button id="pomodoroReiniciar" class="timer-btn" style="background:#6c757d;">🔄 Reiniciar</button>
+        <button id="pomodoroConfig" class="timer-btn" style="background:#3b82f6;">⚙️ Configurar</button>
+    </div>
+    <!-- Configurações (ocultas inicialmente) -->
+    <div id="pomodoroConfigPainel" style="display: none; margin-top: 12px; background: #fff; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <label>⏱️ Foco (min): <input type="number" id="pomodoroFocoMin" value="25" min="1" step="1" style="width:60px; padding:4px; border-radius:8px; border:1px solid #cbd5e1;"></label>
+            </div>
+            <div>
+                <label>☕ Pausa curta (min): <input type="number" id="pomodoroPausaCurtaMin" value="5" min="1" step="1" style="width:60px; padding:4px; border-radius:8px; border:1px solid #cbd5e1;"></label>
+            </div>
+            <div>
+                <label>⏳ Pausa longa (min): <input type="number" id="pomodoroPausaLongaMin" value="15" min="1" step="1" style="width:60px; padding:4px; border-radius:8px; border:1px solid #cbd5e1;"></label>
+            </div>
+            <div>
+                <label>🔁 Ciclos até pausa longa: <input type="number" id="pomodoroCiclosLonga" value="4" min="1" step="1" style="width:60px; padding:4px; border-radius:8px; border:1px solid #cbd5e1;"></label>
+            </div>
+            <button id="pomodoroSalvarConfig" class="timer-btn" style="background:#1e6f5c; padding:4px 16px;">Salvar</button>
+        </div>
+    </div>
+</div>
+
     <!-- Navegação do calendário -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <button id="btnMesAnterior" style="background: #e2e8f0; border: none; padding: 6px 16px; border-radius: 30px; cursor: pointer; font-weight: bold;">◀</button>
@@ -2090,9 +2130,7 @@ document.querySelector('[data-tab="relatorios"]').addEventListener('click', func
 
     //fim - Forçar a sincronização da aba Relatórios//
     //adicionado para implementação da aba supergameficação do calendário.
-    if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-}
+
 
        // Serve para limitar os rótulos dos gráficos, evitando que fiquem muito longos
             function abreviarRotulo(texto, limite = 30) {
@@ -3273,19 +3311,16 @@ function iniciarOuvinteFirebase() {
 // Função mergeLoges
 function mergeLogs(local, remote) {
     const map = new Map();
-    // Adiciona todos os locais
     local.forEach(item => map.set(item.id, { ...item, source: 'local' }));
-    // Para cada remoto, se não existir ou se o remoto for mais recente, substitui
     remote.forEach(item => {
         const localItem = map.get(item.id);
         if (!localItem || (item.updatedAt || 0) > (localItem.updatedAt || 0)) {
             map.set(item.id, { ...item, source: 'remote' });
         }
     });
-    return Array.from(map.values());
+    // Retorna apenas os registros NÃO deletados
+    return Array.from(map.values()).filter(item => !item.deleted);
 }
-
-
 // Chama o ouvinte uma única vez na inicialização
     iniciarOuvinteFirebase();
 
@@ -3519,42 +3554,39 @@ function adicionarLog() {
     document.getElementById('ondeParei').value = '';
 }
 
-    function removerLog(id) {
-        let logs = carregarLogs();
-        const originalLength = logs.length;
-        logs = logs.filter(log => log.id !== id);
-        if (logs.length === originalLength) {
-            console.warn('ID não encontrado para remoção:', id);
-            return;
-        }
+  function removerLog(id) {
+    let logs = carregarLogs();
+    const log = logs.find(l => l.id === id);
+    if (log) {
+        log.deleted = true;
+        log.updatedAt = Date.now();
         salvarLogs(logs);
         renderizarTabela();
         atualizarGraficos();
         atualizarMetricasTempoPorPagina();
-
-        // ===== ATUALIZA O CONTADOR =====
-        const contador = document.getElementById('contadorHistorico');
-        if (contador) {
-            const updatedLogs = carregarLogs();
-            contador.textContent = `(${updatedLogs.length} registros)`;
-        }
     }
+}
 
-    function limparTodosLogs() {
-        if (confirm('Tem certeza que deseja apagar todos os lançamentos manuais?')) {
-            salvarLogs([]);
-            renderizarTabela();
-            atualizarGraficos();
-            atualizarMetricasTempoPorPagina();
-        }
+  function limparTodosLogs() {
+    if (confirm('Tem certeza que deseja apagar todos os lançamentos manuais?')) {
+        let logs = carregarLogs();
+        logs.forEach(log => {
+            log.deleted = true;
+            log.updatedAt = Date.now();
+        });
+        salvarLogs(logs);
+        renderizarTabela();
+        atualizarGraficos();
+        atualizarMetricasTempoPorPagina();
     }
-
+}
+    
     window.removerLog = removerLog;
 
     // ---------- 5. RENDERIZAR TABELA ----------
 
     function renderizarTabela() {
-    const logs = carregarLogs();
+    const logs = carregarLogs().filter(log => !log.deleted);
     const corpo = document.getElementById('corpoTabelaManual');
     if (!corpo) return;
 
@@ -3937,7 +3969,7 @@ setupHistorico();
 function atualizarGraficos() {
      console.log('atualizarGraficos iniciada');
    
-const logs = carregarLogs();
+const logs = carregarLogs().filter(log => !log.deleted);
     if (logs.length === 0) {
         if (graficoHorasPaginas) { graficoHorasPaginas.destroy(); graficoHorasPaginas = null; }
         if (graficoAcertosErros) { graficoAcertosErros.destroy(); graficoAcertosErros = null; }
@@ -4249,14 +4281,14 @@ function initCalendario() {
     }
 
     function getDiasEstudados() {
-        const logs = carregarLogs();
+        const logs = carregarLogs().filter(log => !log.deleted);
         const dias = new Set();
         logs.forEach(log => { if (log.data) dias.add(log.data.split('T')[0]); });
         return dias;
     }
 
     function getHorasPorDia() {
-        const logs = carregarLogs();
+        const logs = carregarLogs().filter(log => !log.deleted);
         const mapa = {};
         logs.forEach(log => {
             if (log.data) {
@@ -4394,7 +4426,7 @@ function initCalendario() {
             novasMedalhas.forEach(med => {
                 const item = novas.find(n => n.nome === med);
                 if (item) {
-                    notificarMedalha(item.nome, item.emoji);
+                    // remover notivação de medalha: <notificarMedalha(item.nome, item.emoji);>
                     lancarConfete();
                 }
             });
@@ -4649,6 +4681,174 @@ function initCalendario() {
     if (btnIniciarCron) btnIniciarCron.addEventListener('click', iniciarCronometro);
     if (btnPausarCron) btnPausarCron.addEventListener('click', pausarCronometro);
     if (btnPararCron) btnPararCron.addEventListener('click', pararCronometro);
+
+    // -- fim cronômetro
+
+    // ==================== POMODORO ====================
+function initPomodoro() {
+    // Elementos
+    const display = document.getElementById('pomodoroDisplay');
+    const statusEl = document.getElementById('pomodoroStatus');
+    const ciclosEl = document.getElementById('pomodoroCiclos');
+    const btnIniciar = document.getElementById('pomodoroIniciar');
+    const btnPausar = document.getElementById('pomodoroPausar');
+    const btnReiniciar = document.getElementById('pomodoroReiniciar');
+    const btnConfig = document.getElementById('pomodoroConfig');
+    const configPainel = document.getElementById('pomodoroConfigPainel');
+    const btnSalvarConfig = document.getElementById('pomodoroSalvarConfig');
+
+    // Configurações
+    let focoMin = parseInt(localStorage.getItem('pomodoroFoco')) || 25;
+    let pausaCurtaMin = parseInt(localStorage.getItem('pomodoroPausaCurta')) || 5;
+    let pausaLongaMin = parseInt(localStorage.getItem('pomodoroPausaLonga')) || 15;
+    let ciclosLonga = parseInt(localStorage.getItem('pomodoroCiclosLonga')) || 4;
+
+    // Estado
+    let tempoRestante = focoMin * 60;
+    let modo = 'foco';
+    let ciclos = 0;
+    let interval = null;
+    let rodando = false;
+    let pausado = false;
+
+    // Atualiza campos de configuração
+    document.getElementById('pomodoroFocoMin').value = focoMin;
+    document.getElementById('pomodoroPausaCurtaMin').value = pausaCurtaMin;
+    document.getElementById('pomodoroPausaLongaMin').value = pausaLongaMin;
+    document.getElementById('pomodoroCiclosLonga').value = ciclosLonga;
+
+    function atualizarDisplay() {
+        const min = Math.floor(tempoRestante / 60);
+        const seg = tempoRestante % 60;
+        display.textContent = `${String(min).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
+    }
+
+    function atualizarStatus() {
+        const labels = {
+            foco: '🔴 Foco',
+            pausaCurta: '☕ Pausa curta',
+            pausaLonga: '⏳ Pausa longa'
+        };
+        statusEl.textContent = rodando ? labels[modo] : '⏸ Parado';
+        statusEl.style.color = rodando ? (modo === 'foco' ? '#dc2626' : '#1e6f5c') : '#6b7280';
+    }
+
+    // Função de som (mantida)
+    function tocarSom(frequencia = 880, duracao = 300) {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = frequencia;
+            gain.gain.value = 0.2;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            setTimeout(() => { osc.stop(); ctx.close(); }, duracao);
+        } catch(e) {}
+    }
+
+    function finalizarCiclo() {
+        // Toca o som ao final de cada ciclo (foco ou pausa)
+        tocarSom(880, 400);
+        setTimeout(() => tocarSom(1100, 400), 200);
+
+        if (modo === 'foco') {
+            ciclos++;
+            ciclosEl.textContent = ciclos;
+            if (ciclos % ciclosLonga === 0) {
+                modo = 'pausaLonga';
+                tempoRestante = pausaLongaMin * 60;
+            } else {
+                modo = 'pausaCurta';
+                tempoRestante = pausaCurtaMin * 60;
+            }
+        } else {
+            modo = 'foco';
+            tempoRestante = focoMin * 60;
+        }
+        atualizarDisplay();
+        atualizarStatus();
+    }
+
+    function iniciarTimer() {
+        if (interval) clearInterval(interval);
+        rodando = true;
+        pausado = false;
+        btnIniciar.disabled = true;
+        btnPausar.disabled = false;
+        btnPausar.textContent = '⏸ Pausar';
+        atualizarStatus();
+        interval = setInterval(() => {
+            if (!pausado) {
+                tempoRestante--;
+                atualizarDisplay();
+                if (tempoRestante <= 0) {
+                    finalizarCiclo();
+                }
+            }
+        }, 1000);
+    }
+
+    function pausarTimer() {
+        if (!rodando) return;
+        pausado = !pausado;
+        if (pausado) {
+            btnPausar.textContent = '▶ Retomar';
+            btnPausar.style.background = '#3b82f6';
+            statusEl.textContent = '⏸ Pausado';
+        } else {
+            btnPausar.textContent = '⏸ Pausar';
+            btnPausar.style.background = '#f59e0b';
+            atualizarStatus();
+        }
+    }
+
+    function reiniciarTimer() {
+        if (interval) clearInterval(interval);
+        rodando = false;
+        pausado = false;
+        btnIniciar.disabled = false;
+        btnPausar.disabled = true;
+        btnPausar.textContent = '⏸ Pausar';
+        btnPausar.style.background = '#f59e0b';
+        ciclos = 0;
+        ciclosEl.textContent = ciclos;
+        modo = 'foco';
+        tempoRestante = focoMin * 60;
+        atualizarDisplay();
+        atualizarStatus();
+    }
+
+    // Event listeners
+    btnIniciar.addEventListener('click', iniciarTimer);
+    btnPausar.addEventListener('click', pausarTimer);
+    btnReiniciar.addEventListener('click', reiniciarTimer);
+
+    btnConfig.addEventListener('click', () => {
+        configPainel.style.display = configPainel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    btnSalvarConfig.addEventListener('click', () => {
+        focoMin = parseInt(document.getElementById('pomodoroFocoMin').value) || 25;
+        pausaCurtaMin = parseInt(document.getElementById('pomodoroPausaCurtaMin').value) || 5;
+        pausaLongaMin = parseInt(document.getElementById('pomodoroPausaLongaMin').value) || 15;
+        ciclosLonga = parseInt(document.getElementById('pomodoroCiclosLonga').value) || 4;
+        localStorage.setItem('pomodoroFoco', focoMin);
+        localStorage.setItem('pomodoroPausaCurta', pausaCurtaMin);
+        localStorage.setItem('pomodoroPausaLonga', pausaLongaMin);
+        localStorage.setItem('pomodoroCiclosLonga', ciclosLonga);
+        reiniciarTimer();
+        configPainel.style.display = 'none';
+        alert('Configurações salvas!');
+    });
+
+    // Inicializa
+    reiniciarTimer();
+}
+
+    // -- fim pomodoro
 
     // --- RENDERIZAÇÃO PRINCIPAL ---
     function renderizarCalendario() {
@@ -4914,7 +5114,10 @@ function atualizarUltimoPontoParada() {
 
 
 function atualizarMetricasTempoPorPagina() {
-    const logs = JSON.parse(localStorage.getItem('sedes_manual_logs_fallback') || '[]');
+    // Carrega os logs e filtra os que NÃO estão deletados
+    const logs = carregarLogs().filter(log => !log.deleted);
+    
+    // Filtra apenas os registros que têm páginas e tempo
     const registrosValidos = logs.filter(log => 
         (log.paginas || 0) > 0 && ((log.horas || 0) + (log.minutos || 0)) > 0
     );

@@ -2054,6 +2054,41 @@ button, .tab-btn, .timer-btn, .page-btn, .btn-resposta, .save-redacao {
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
 
+    //Forçar a sincronização da aba Relatórios//
+
+    // Força sincronização ao entrar na aba Relatórios
+document.querySelector('[data-tab="relatorios"]').addEventListener('click', function() {
+    if (currentUser) {
+        const ref = database.ref('users/' + currentUser.uid + '/logs');
+        ref.once('value').then(snapshot => {
+            const remoteLogs = snapshot.val() || [];
+            const localLogs = carregarLogs();
+            const merged = mergeLogs(localLogs, remoteLogs);
+            
+            if (JSON.stringify(merged) !== JSON.stringify(localLogs)) {
+                localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(merged));
+            }
+            if (JSON.stringify(merged) !== JSON.stringify(remoteLogs)) {
+                ref.set(merged).catch(console.error);
+            }
+            
+            renderizarTabela();
+            atualizarGraficos();
+            atualizarMetricasTempoPorPagina();
+        }).catch(err => {
+            console.warn('Erro ao buscar dados do Firebase:', err);
+            renderizarTabela();
+            atualizarGraficos();
+            atualizarMetricasTempoPorPagina();
+        });
+    } else {
+        renderizarTabela();
+        atualizarGraficos();
+        atualizarMetricasTempoPorPagina();
+    }
+});
+
+    //fim - Forçar a sincronização da aba Relatórios//
     //adicionado para implementação da aba supergameficação do calendário.
     if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
@@ -3167,49 +3202,90 @@ let currentUserLogsRef = null; // Guarda a referência do banco do usuário atua
 // 3. Ouvinte do Firebase (atualiza quando outro dispositivo muda os dados do usuário)
 
 function iniciarOuvinteFirebase() {
+    // Só executa se houver um usuário logado
+    if (!currentUser) return;
+
+    // Remove listener anterior para evitar duplicidade
     if (currentUserLogsRef) {
         currentUserLogsRef.off();
         currentUserLogsRef = null;
     }
-    if (!currentUser) return;
 
+    // Referência ao nó de logs do usuário no Firebase
     currentUserLogsRef = database.ref('users/' + currentUser.uid + '/logs');
-    
+
+    // ----------------------------------------------------------------
+    // 1. LISTENER PRINCIPAL – sincronização em tempo real
+    // ----------------------------------------------------------------
     currentUserLogsRef.on('value', (snapshot) => {
-        const firebaseLogs = snapshot.val();
-        const localLogs = JSON.parse(localStorage.getItem('sedes_manual_logs_fallback') || '[]');
-        
-        // Se o Firebase estiver vazio, não sobrescreve o localStorage
-        if (!firebaseLogs) {
-            // Se o localStorage tiver dados, envia para o Firebase
-            if (localLogs.length > 0) {
-                currentUserLogsRef.set(localLogs).catch(err => console.error('Erro ao sincronizar Firebase:', err));
-            }
-            return;
-        }
-        
-        // Se o Firebase tiver dados, mas o localStorage estiver vazio, restaura do Firebase
-        if (localLogs.length === 0) {
-            localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(firebaseLogs));
+        const remoteLogs = snapshot.val() || [];
+        const localLogs = carregarLogs();
+
+        // Mescla os arrays usando o id como chave e updatedAt para decidir qual prevalece
+        const merged = mergeLogs(localLogs, remoteLogs);
+
+        // Se houver alterações, salva no localStorage e renderiza
+        if (JSON.stringify(merged) !== JSON.stringify(localLogs)) {
+            localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(merged));
             renderizarTabela();
             atualizarGraficos();
             atualizarMetricasTempoPorPagina();
-            return;
         }
-        
-        // Se ambos tiverem dados, mescla (prioriza o localStorage se houver conflito)
-        // Aqui podemos simplesmente ignorar o Firebase se o localStorage já tiver dados,
-        // ou fazer uma mesclagem mais sofisticada (comparando IDs).
-        // Para simplificar, vamos manter o localStorage e enviar de volta para o Firebase.
-        // Mas só se os dados do Firebase forem diferentes.
-        if (JSON.stringify(firebaseLogs) !== JSON.stringify(localLogs)) {
-            // Envia os dados locais para o Firebase (sobrescreve o remoto com o local)
-            currentUserLogsRef.set(localLogs).catch(err => console.error('Erro ao sincronizar Firebase:', err));
+
+        // Se o merged for diferente do remoto, atualiza o Firebase (propaga a mesclagem)
+        if (JSON.stringify(merged) !== JSON.stringify(remoteLogs)) {
+            currentUserLogsRef.set(merged).catch((error) => {
+                console.error('Erro ao atualizar Firebase:', error);
+            });
+        }
+    });
+
+    // ----------------------------------------------------------------
+    // 2. MONITORAMENTO DE RECONEXÃO (Proposta 2)
+    // ----------------------------------------------------------------
+    const connectedRef = database.ref('.info/connected');
+    connectedRef.off(); // Remove listeners antigos para evitar duplicação
+    connectedRef.on('value', (snap) => {
+        // Quando a conexão for restabelecida e o usuário ainda estiver logado
+        if (snap.val() === true && currentUser) {
+            // Força uma leitura única para sincronizar dados que podem ter ficado pendentes
+            currentUserLogsRef.once('value').then((snapshot) => {
+                const remoteLogs = snapshot.val() || [];
+                const localLogs = carregarLogs();
+                const merged = mergeLogs(localLogs, remoteLogs);
+
+                if (JSON.stringify(merged) !== JSON.stringify(localLogs)) {
+                    localStorage.setItem('sedes_manual_logs_fallback', JSON.stringify(merged));
+                    renderizarTabela();
+                    atualizarGraficos();
+                    atualizarMetricasTempoPorPagina();
+                }
+                if (JSON.stringify(merged) !== JSON.stringify(remoteLogs)) {
+                    currentUserLogsRef.set(merged).catch(console.error);
+                }
+            }).catch((err) => {
+                console.warn('Erro ao sincronizar após reconexão:', err);
+            });
         }
     });
 }
+// Fim da função ouvinte firebase //
+// Função mergeLoges
+function mergeLogs(local, remote) {
+    const map = new Map();
+    // Adiciona todos os locais
+    local.forEach(item => map.set(item.id, { ...item, source: 'local' }));
+    // Para cada remoto, se não existir ou se o remoto for mais recente, substitui
+    remote.forEach(item => {
+        const localItem = map.get(item.id);
+        if (!localItem || (item.updatedAt || 0) > (localItem.updatedAt || 0)) {
+            map.set(item.id, { ...item, source: 'remote' });
+        }
+    });
+    return Array.from(map.values());
+}
 
-// Fina da função ouvinte firebase //
+
 // Chama o ouvinte uma única vez na inicialização
     iniciarOuvinteFirebase();
 
@@ -4543,6 +4619,7 @@ function initCalendario() {
             const logs = carregarLogs();
             logs.push({
                 id: Date.now(),
+                updatedAt: Date.now(), // <-- ADICIONE ESTA LINHA
                 data: dataHoje,
                 nivel1: '⏱️ Automático',
                 nivel2: 'Cronômetro',
